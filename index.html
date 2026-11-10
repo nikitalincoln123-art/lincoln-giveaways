@@ -313,23 +313,18 @@
     animation:modelFloat 9s ease-in-out infinite;
     will-change:transform;
   }
+  .model-fx{position:absolute;left:0;top:0;width:100%;height:100%;z-index:3;pointer-events:none}
   .model__flash{
     position:absolute;inset:-20%;z-index:4;pointer-events:none;opacity:0;
     background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.85),rgba(255,255,255,.18) 40%,transparent 70%);
     filter:blur(6px);mix-blend-mode:screen;
   }
-  .model.is-assembling .model__flash{animation:flashBurst .7s ease .75s both}
+  .model.is-assembling .model__flash{animation:flashBurst .7s ease 1.1s both}
   @keyframes flashBurst{0%{opacity:0;transform:scale(.4)}30%{opacity:1}100%{opacity:0;transform:scale(1.4)}}
-  .model.is-assembling .model__flip{
-    animation:plateEnter .85s cubic-bezier(.16,.84,.3,1) both;
-  }
-  .model.is-assembling.is-shown .model__flip{animation:none;transform:rotateY(0)}
-  @keyframes plateEnter{
-    0%{opacity:0;transform:scale(.62) translateY(34px) rotateX(14deg);filter:blur(8px)}
-    55%{opacity:1;filter:blur(1px)}
-    100%{opacity:1;transform:scale(1) translateY(0) rotateX(0deg);filter:blur(0)}
-  }
-  .model.is-assembling .model__plate{animation:none}
+  .model.is-assembling .model__flip{opacity:1}
+  .model.is-assembling{animation:none}
+  .model.is-assembling .model__plate{animation:none;transform:rotateX(7deg) rotateY(-23deg)}
+  body.is-assembling .rain{opacity:0;transition:opacity .3s ease}
   .model__plate{
     position:absolute;inset:0;transform-style:preserve-3d;
     animation:modelTurn 18s ease-in-out infinite;
@@ -1032,6 +1027,7 @@
         </div>
       </div>
             <div class="hero__art" aria-hidden="true">
+        <canvas class="model-fx" id="modelFx"></canvas>
         <span class="lincoln-water">LINCOLN</span>
         <div class="model-parallax">
           <div class="model">
@@ -1501,16 +1497,130 @@
   }
 
   var modelNode = document.querySelector(".model");
+  var fx = document.getElementById("modelFx");
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (modelNode && !reduceMotion){
-    modelNode.classList.add("is-assembling");
-    setTimeout(function(){
-      modelNode.classList.add("is-shown");
-    }, 620);
-    setTimeout(function(){
-      modelNode.classList.remove("is-assembling");
-    }, 1600);
-    setTimeout(function(){ playBoom(); }, 1050);
+  var splashSeen = false;
+  try { splashSeen = sessionStorage.getItem("lincoln-splash") === "1"; } catch (e) {}
+
+  if (modelNode && fx && fx.getContext && !reduceMotion){
+    var fctx = fx.getContext("2d");
+    var parts = [], W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var assembling = false, done = false;
+
+    function buildTargets(){
+      var plate = modelNode.querySelector(".model__plate");
+      var w = W, h = H;
+      var cx = w / 2, cy = h / 2;
+      var bw = 300, bh = 376;
+      if (plate){
+        var artRect = fx.getBoundingClientRect();
+        var pr = plate.getBoundingClientRect();
+        bw = Math.min(pr.width, w - 40);
+        bh = Math.min(pr.height, h - 40);
+        cx = (pr.left - artRect.left) + pr.width / 2;
+        cy = (pr.top - artRect.top) + pr.height / 2;
+      }
+      var left = cx - bw / 2, right = cx + bw / 2, top = cy - bh / 2, bottom = cy + bh / 2;
+      var pts = [], step = 10;
+      var x, y;
+      for (x = left; x <= right; x += step){ pts.push([x, top]); pts.push([x, bottom]); }
+      for (y = top + step; y < bottom; y += step){ pts.push([left, y]); pts.push([right, y]); }
+      for (var gyy = top + 56; gyy <= bottom - 56; gyy += 42){
+        for (var gxx = left + 38; gxx <= right - 38; gxx += 40){
+          pts.push([gxx, gyy]);
+        }
+      }
+      return pts;
+    }
+
+    function sizeFx(){
+      var r = fx.getBoundingClientRect();
+      W = r.width || 1; H = r.height || 1;
+      fx.width = Math.round(W * dpr);
+      fx.height = Math.round(H * dpr);
+      fctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    window.addEventListener("resize", function(){ if (!done) sizeFx(); });
+
+    function startAssembly(){
+      if (assembling) return;
+      assembling = true;
+      modelNode.classList.add("is-assembling");
+      var art = modelNode.closest(".hero__art");
+      if (art) art.classList.add("is-assembling");
+      document.body.classList.add("is-assembling");
+      sizeFx();
+      var targets = buildTargets();
+      parts = [];
+      for (var i = 0; i < targets.length; i++){
+        parts.push({
+          x: targets[i][0] + (Math.random() - .5) * 170,
+          y: targets[i][1] + (Math.random() - .5) * 170,
+          tx: targets[i][0],
+          ty: targets[i][1],
+          d: (i / targets.length) * .26 + Math.random() * .05,
+          r: 1 + Math.random() * 1.2,
+          q: 0
+        });
+      }
+      var t0 = performance.now();
+      var fadeAt = null;
+      function frame(now){
+        var elapsed = now - t0;
+        var fadeP = fadeAt !== null ? Math.min((now - fadeAt) / 200, 1) : null;
+        fctx.clearRect(0, 0, W, H);
+        if (fadeP === null){
+          draw(true);
+        } else if (fadeP < 1){
+          fctx.globalAlpha = 1 - fadeP;
+          draw(false);
+          fctx.globalAlpha = 1;
+        } else {
+          fctx.clearRect(0, 0, W, H);
+          done = true;
+          modelNode.classList.remove("is-assembling");
+          var artFin = modelNode.closest(".hero__art");
+          if (artFin) artFin.classList.remove("is-assembling");
+          document.body.classList.remove("is-assembling");
+          return;
+        }
+        var allArrived = true;
+        for (var k = 0; k < parts.length; k++){
+          var p = parts[k];
+          if (elapsed - p.d * 1000 < 0) { allArrived = false; continue; }
+          var q = Math.min((elapsed - p.d * 1000) / 460, 1);
+          q = 1 - Math.pow(1 - q, 3);
+          p.q = q;
+          if (q > 1e-4){
+            p.x += (p.tx - p.x) * q * .3;
+            p.y += (p.ty - p.y) * q * .3;
+          }
+          if (q < .995) allArrived = false;
+        }
+        if (allArrived && fadeAt === null) fadeAt = now + 60;
+        requestAnimationFrame(frame);
+      }
+      function draw(anim){
+        fctx.fillStyle = "#E6EDF4";
+        for (var j = 0; j < parts.length; j++){
+          var pp = parts[j];
+          var qq = pp.d * 1000 > (performance.now() - t0) ? 0 : pp.q;
+          fctx.globalAlpha = .25 + .75 * qq;
+          fctx.beginPath();
+          fctx.arc(pp.x, pp.y, pp.r, 0, Math.PI * 2);
+          fctx.fill();
+        }
+        fctx.globalAlpha = 1;
+      }
+      requestAnimationFrame(frame);
+      setTimeout(function(){ playBoom(); }, 1250);
+    }
+
+    if (splashSeen){
+      setTimeout(startAssembly, 150);
+    } else {
+      setTimeout(startAssembly, 1050);
+    }
   }
 
   var rain = document.getElementById("rain");

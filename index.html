@@ -313,25 +313,6 @@
     animation:modelFloat 9s ease-in-out infinite;
     will-change:transform;
   }
-  .model__shards{position:absolute;inset:34% 16%;z-index:3;pointer-events:none;transform-style:preserve-3d}
-  .model__shards i{position:absolute;background:linear-gradient(140deg,rgba(225,235,244,.95),rgba(180,195,210,.35));box-shadow:0 0 26px rgba(200,215,230,.6);opacity:0;mix-blend-mode:screen}
-  .model__shards i:nth-child(1){left:0;top:0;width:58%;height:44%}
-  .model__shards i:nth-child(2){right:0;top:0;width:40%;height:30%}
-  .model__shards i:nth-child(3){left:0;bottom:0;width:44%;height:34%}
-  .model__shards i:nth-child(4){right:0;bottom:0;width:54%;height:46%}
-  .model__shards i:nth-child(5){left:32%;top:34%;width:36%;height:32%}
-  .model__shards i:nth-child(6){left:10%;top:18%;width:30%;height:24%;border-radius:50%}
-  .model.is-assembling .model__shards i{animation:shardIn .9s cubic-bezier(.16,.84,.3,1) both}
-  .model.is-assembling .model__shards i:nth-child(1){animation-delay:.05s}
-  .model.is-assembling .model__shards i:nth-child(2){animation-delay:.14s}
-  .model.is-assembling .model__shards i:nth-child(3){animation-delay:.22s}
-  .model.is-assembling .model__shards i:nth-child(4){animation-delay:.3s}
-  .model.is-assembling .model__shards i:nth-child(5){animation-delay:.38s}
-  .model.is-assembling .model__shards i:nth-child(6){animation-delay:.46s}
-  @keyframes shardIn{
-    0%{opacity:0;transform:translate(var(--sx,0),var(--sy,0)) scale(.3) rotate(var(--sr,0deg))}
-    100%{opacity:1;transform:translate(0,0) scale(1) rotate(0deg)}
-  }
   .model__flash{
     position:absolute;inset:-20%;z-index:4;pointer-events:none;opacity:0;
     background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.85),rgba(255,255,255,.18) 40%,transparent 70%);
@@ -339,9 +320,16 @@
   }
   .model.is-assembling .model__flash{animation:flashBurst .7s ease .75s both}
   @keyframes flashBurst{0%{opacity:0;transform:scale(.4)}30%{opacity:1}100%{opacity:0;transform:scale(1.4)}}
-  .model.is-assembling .model__plate{animation:none;transform:rotateY(0) translateZ(0);opacity:0;transition:opacity .3s ease}
-  .model.is-assembling.is-shown .model__plate{opacity:1}
-  .model.is-assembling .model__flip{transform:rotateY(0)}
+  .model.is-assembling .model__flip{
+    animation:plateEnter .85s cubic-bezier(.16,.84,.3,1) both;
+  }
+  .model.is-assembling.is-shown .model__flip{animation:none;transform:rotateY(0)}
+  @keyframes plateEnter{
+    0%{opacity:0;transform:scale(.62) translateY(34px) rotateX(14deg);filter:blur(8px)}
+    55%{opacity:1;filter:blur(1px)}
+    100%{opacity:1;transform:scale(1) translateY(0) rotateX(0deg);filter:blur(0)}
+  }
+  .model.is-assembling .model__plate{animation:none}
   .model__plate{
     position:absolute;inset:0;transform-style:preserve-3d;
     animation:modelTurn 18s ease-in-out infinite;
@@ -1047,7 +1035,6 @@
         <span class="lincoln-water">LINCOLN</span>
         <div class="model-parallax">
           <div class="model">
-          <div class="model__shards" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
           <div class="model__flash" aria-hidden="true"></div>
           <div class="model__flip">
           <div class="model__plate">
@@ -1514,16 +1501,8 @@
   }
 
   var modelNode = document.querySelector(".model");
-  var modelShards = document.querySelectorAll(".model__shards i");
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (modelNode && modelShards.length && !reduceMotion){
-    var shardOffsets = [[-130,-90,-24],[120,-70,22],[-110,80,18],[130,100,-20],[0,-120,32],[90,150,40]];
-    for (var sh = 0; sh < modelShards.length; sh++){
-      var o = shardOffsets[sh] || [0,0,0];
-      modelShards[sh].style.setProperty("--sx", o[0] + "px");
-      modelShards[sh].style.setProperty("--sy", o[1] + "px");
-      modelShards[sh].style.setProperty("--sr", o[2] + "deg");
-    }
+  if (modelNode && !reduceMotion){
     modelNode.classList.add("is-assembling");
     setTimeout(function(){
       modelNode.classList.add("is-shown");

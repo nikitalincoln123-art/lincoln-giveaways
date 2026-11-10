@@ -142,6 +142,16 @@
   .nav__links a:hover{color:#fff}
   .nav__links a:hover::after{transform:scaleX(1)}
   .nav__cta{margin-left:auto}
+  .sound-toggle{
+    width:38px;height:38px;flex:none;display:inline-flex;align-items:center;justify-content:center;
+    border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.03);color:#B9C3CD;
+    cursor:pointer;transition:border-color .25s,background .25s,color .25s;
+  }
+  .sound-toggle:hover{border-color:rgba(255,255,255,.38);color:#fff}
+  .sound-ic-on{display:none}
+  .sound-toggle[aria-pressed="true"] .sound-ic-on{display:block}
+  .sound-toggle[aria-pressed="true"] .sound-ic-off{display:none}
+  @media (max-width:420px){.sound-toggle{display:none}}
   .nav__cta .btn{height:38px;font-size:9.5px;letter-spacing:.15em;padding:0 16px}
   .nav__burger{display:none;position:relative;width:40px;height:40px;flex:none;padding:0;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.03);cursor:pointer;transition:border-color .25s ease,background .25s ease}
   .nav__burger:hover{border-color:rgba(255,255,255,.34);background:rgba(255,255,255,.06)}
@@ -224,7 +234,15 @@
     font-size:clamp(40px,5vw,72px);line-height:1.0;letter-spacing:.012em;
     text-wrap:balance;color:#FBFDFE;
     text-shadow:0 2px 30px rgba(0,0,0,.85),0 0 60px rgba(255,255,255,.05);
+    position:relative;
   }
+  h1 .hglow{
+    position:absolute;inset:0;z-index:2;pointer-events:none;
+    background:radial-gradient(120px 60% at var(--hx,0px) 50%,rgba(255,255,255,.55),rgba(255,255,255,.08) 45%,transparent 72%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:blur(0);mix-blend-mode:screen;opacity:0;transition:opacity .4s ease;
+  }
+  @media (hover:hover) and (pointer:fine){h1 .hglow{opacity:1}}
   h1 .grad{
     background:linear-gradient(180deg,#FFFFFF 0%,#FBFDFE 55%,#D9E2EA 100%);
     -webkit-background-clip:text;background-clip:text;color:transparent;
@@ -295,6 +313,35 @@
     animation:modelFloat 9s ease-in-out infinite;
     will-change:transform;
   }
+  .model__shards{position:absolute;inset:34% 16%;z-index:3;pointer-events:none;transform-style:preserve-3d}
+  .model__shards i{position:absolute;background:linear-gradient(140deg,rgba(225,235,244,.95),rgba(180,195,210,.35));box-shadow:0 0 26px rgba(200,215,230,.6);opacity:0;mix-blend-mode:screen}
+  .model__shards i:nth-child(1){left:0;top:0;width:58%;height:44%}
+  .model__shards i:nth-child(2){right:0;top:0;width:40%;height:30%}
+  .model__shards i:nth-child(3){left:0;bottom:0;width:44%;height:34%}
+  .model__shards i:nth-child(4){right:0;bottom:0;width:54%;height:46%}
+  .model__shards i:nth-child(5){left:32%;top:34%;width:36%;height:32%}
+  .model__shards i:nth-child(6){left:10%;top:18%;width:30%;height:24%;border-radius:50%}
+  .model.is-assembling .model__shards i{animation:shardIn .9s cubic-bezier(.16,.84,.3,1) both}
+  .model.is-assembling .model__shards i:nth-child(1){animation-delay:.05s}
+  .model.is-assembling .model__shards i:nth-child(2){animation-delay:.14s}
+  .model.is-assembling .model__shards i:nth-child(3){animation-delay:.22s}
+  .model.is-assembling .model__shards i:nth-child(4){animation-delay:.3s}
+  .model.is-assembling .model__shards i:nth-child(5){animation-delay:.38s}
+  .model.is-assembling .model__shards i:nth-child(6){animation-delay:.46s}
+  @keyframes shardIn{
+    0%{opacity:0;transform:translate(var(--sx,0),var(--sy,0)) scale(.3) rotate(var(--sr,0deg))}
+    100%{opacity:1;transform:translate(0,0) scale(1) rotate(0deg)}
+  }
+  .model__flash{
+    position:absolute;inset:-20%;z-index:4;pointer-events:none;opacity:0;
+    background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.85),rgba(255,255,255,.18) 40%,transparent 70%);
+    filter:blur(6px);mix-blend-mode:screen;
+  }
+  .model.is-assembling .model__flash{animation:flashBurst .7s ease .75s both}
+  @keyframes flashBurst{0%{opacity:0;transform:scale(.4)}30%{opacity:1}100%{opacity:0;transform:scale(1.4)}}
+  .model.is-assembling .model__plate{animation:none;transform:rotateY(0) translateZ(0);opacity:0;transition:opacity .3s ease}
+  .model.is-assembling.is-shown .model__plate{opacity:1}
+  .model.is-assembling .model__flip{transform:rotateY(0)}
   .model__plate{
     position:absolute;inset:0;transform-style:preserve-3d;
     animation:modelTurn 18s ease-in-out infinite;
@@ -329,14 +376,24 @@
   }
   .model__face--back{
     transform:translate(-50%,-50%) rotateY(180deg) translateZ(calc(var(--d) / 2));
-    background:linear-gradient(155deg,rgba(255,255,255,.05),rgba(0,0,0,.6));
-    border-color:rgba(255,255,255,.12);
+    background:
+      radial-gradient(130% 100% at 25% 0%,rgba(255,255,255,.14),transparent 55%),
+      linear-gradient(155deg,rgba(12,16,22,.96),rgba(4,6,9,.96));
+    border-color:rgba(255,255,255,.3);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),inset 0 0 0 11px rgba(0,0,0,.3),inset 0 0 0 12px rgba(255,255,255,.09);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--w) * .03);
+    overflow:hidden;
   }
-  .model__face--back::before{
-    content:"L";position:absolute;inset:0;display:grid;place-items:center;
-    font-family:var(--display);font-size:calc(var(--w) * .34);font-weight:600;
-    color:rgba(255,255,255,.06);
+  .model__back-top{font-family:var(--mono);font-size:calc(var(--w) * .022);letter-spacing:.42em;text-transform:uppercase;color:rgba(200,212,224,.55)}
+  .model__back-name{font-family:var(--display);font-weight:700;font-size:calc(var(--w) * .068);letter-spacing:.02em;color:#F2F6F9;line-height:1.05}
+  .model__back-cta{
+    display:inline-flex;align-items:center;gap:8px;height:calc(var(--w) * .1);
+    padding:0 calc(var(--w) * .04);margin-top:calc(var(--w) * .02);
+    border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.05);
+    font-family:var(--tech);font-size:calc(var(--w) * .024);font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+    color:#EDF2F6;text-decoration:none;transition:background .25s,border-color .25s;
   }
+  .model__back-cta:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.7)}
   .model__face--left,.model__face--right{
     width:var(--d);height:var(--h);
     background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,.05) 22%,rgba(255,255,255,.015) 70%,rgba(255,255,255,.08));
@@ -573,7 +630,22 @@
   .winner__count{margin:0 0 10px;font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#68727D}
   .winner__empty{margin:0;max-width:62ch;color:#7F8892;font-size:13px;line-height:1.62}
   .winner__list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
-  .winner__list li{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:12px;align-items:center;padding:9px 0;border-top:1px solid rgba(255,255,255,.06)}
+  .winner__list li{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:12px;align-items:center;padding:9px 0;border-top:1px solid rgba(255,255,255,.06);position:relative;cursor:pointer}
+  .winner__row:hover .winner__name{color:#fff}
+  .winner__stamp{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-40%) rotate(-6deg) scale(.4);
+    padding:3px 12px;border:2px solid rgba(190,215,235,.85);color:rgba(210,228,242,.9);
+    font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+    background:rgba(0,0,0,.55);opacity:0;pointer-events:none;white-space:nowrap;
+    box-shadow:0 0 18px rgba(210,228,242,.25);
+  }
+  .winner__row.is-stamped .winner__stamp{animation:stampIn .55s cubic-bezier(.16,.84,.3,1) forwards}
+  @keyframes stampIn{
+    0%{opacity:0;transform:translate(-50%,-40%) rotate(-14deg) scale(1.6)}
+    45%{opacity:1;transform:translate(-50%,-50%) rotate(-6deg) scale(.95)}
+    70%{transform:translate(-50%,-50%) rotate(-6deg) scale(1.04)}
+    100%{opacity:1;transform:translate(-50%,-50%) rotate(-6deg) scale(1)}
+  }
   .winner__place{font-family:var(--mono);font-size:9px;color:#6F7A85}
   .winner__name{font-size:13.5px;color:#DCE4EB}
   .winner__prize{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#7F8892}
@@ -924,6 +996,10 @@
       <a href="#faq">Вопросы</a>
     </nav>
     <div class="nav__cta">
+      <button class="sound-toggle" id="soundToggle" type="button" aria-label="Включить звук" aria-pressed="false">
+        <svg class="sound-ic-on" width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2.5 5.8v4.4h2.6L9 13.5V2.5L5.1 5.8H2.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M11 5.8c1.1 1 1.1 3.4 0 4.4M12.8 4c2 1.9 2 6.1 0 8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        <svg class="sound-ic-off" width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2.5 5.8v4.4h2.6L9 13.5V2.5L5.1 5.8H2.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M11.5 6.2 14 9.8M14 6.2 11.5 9.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      </button>
       <a class="btn btn--ghost" href="https://t.me/AdapterLincoln" target="_blank" rel="noopener noreferrer">Канал</a>
     </div>
     <button class="nav__burger" id="burger" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="mobileMenu">
@@ -947,7 +1023,7 @@
     <div class="wrap hero__grid">
       <div class="hero__copy">
         <a class="eyebrow" href="https://t.me/AdapterLincoln" target="_blank" rel="noopener noreferrer"><i></i>Канал @AdapterLincoln · ноябрь 2026</a>
-        <h1>Розыгрыши Telegram<br><span class="grad">От Lincoln</span></h1>
+        <h1>Розыгрыши Telegram<br><span class="grad">От Lincoln</span><span class="hglow" aria-hidden="true"></span></h1>
         <p class="hero__lead">Пять розыгрышей канала <a href="https://t.me/AdapterLincoln" target="_blank" rel="noopener noreferrer">@AdapterLincoln</a>: звёзды, NFT-подарки и услуги. <b>Без оплат, регистраций и&nbsp;сбора данных.</b></p>
         <div class="hero__actions">
           <a class="btn btn--primary" href="#draws">
@@ -971,6 +1047,9 @@
         <span class="lincoln-water">LINCOLN</span>
         <div class="model-parallax">
           <div class="model">
+          <div class="model__shards" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="model__flash" aria-hidden="true"></div>
+          <div class="model__flip">
           <div class="model__plate">
             <div class="model__face model__face--front">
               <span class="model__top">Telegram · Giveaways</span>
@@ -981,11 +1060,17 @@
               <span class="model__meta">@LincolnWasted</span>
               <span class="model__serial">№ 001 — 2026</span>
             </div>
-            <div class="model__face model__face--back"></div>
+            <div class="model__face model__face--back">
+              <span class="model__back-top">Открой канал</span>
+              <span class="model__back-name">@AdapterLincoln</span>
+              <a class="model__back-cta" href="https://t.me/AdapterLincoln" target="_blank" rel="noopener noreferrer">Перейти в Telegram</a>
+              <span class="model__serial">Победители · Архив</span>
+            </div>
             <div class="model__face model__face--left"></div>
             <div class="model__face model__face--right"></div>
             <div class="model__face model__face--top"></div>
             <div class="model__face model__face--bottom"></div>
+          </div>
           </div>
         </div>
         </div>
@@ -1267,9 +1352,12 @@
     var list;
     if (count){
       list = '<ol class="winner__list">' + d.winners.map(function(w, j){
-        return '<li><span class="winner__place">' + (j + 1) + '</span>' +
+        return '<li class="winner__row" data-place="' + (j + 1) + '">' +
+          '<span class="winner__place">' + (j + 1) + '</span>' +
           '<span class="winner__name">' + esc(w.name) + '</span>' +
-          '<span class="winner__prize">' + esc(w.prize || "—") + '</span></li>';
+          '<span class="winner__prize">' + esc(w.prize || "—") + '</span>' +
+          '<span class="winner__stamp">Проверено @LincolnWasted</span>' +
+        '</li>';
       }).join("") + '</ol>';
     } else {
       list = '<p class="winner__empty">Победители появятся после завершения розыгрыша и проверки доказательств.</p>';
@@ -1380,9 +1468,31 @@
     if (d) openModal(d);
   });
 
+  var archiveEl = document.getElementById("archive");
+  if (archiveEl){
+    archiveEl.addEventListener("click", function(e){
+      var row = e.target.closest(".winner__row");
+      if (!row) return;
+      row.classList.add("is-stamped");
+    });
+  }
+
   render();
 
+  var heroTitle = document.querySelector("h1");
+  if (heroTitle && window.matchMedia("(hover: hover) and (pointer: fine)").matches){
+    heroTitle.addEventListener("pointermove", function(e){
+      var r = heroTitle.getBoundingClientRect();
+      heroTitle.style.setProperty("--hx", (e.clientX - r.left) + "px");
+    });
+    heroTitle.addEventListener("pointerleave", function(){
+      heroTitle.style.setProperty("--hx", "-200px");
+    });
+  }
+
+  var cardGlow = null;
   var heroArt = document.querySelector(".hero__art");
+  var modelFlip = document.querySelector(".model__flip");
   if (heroArt && window.matchMedia("(hover: hover) and (pointer: fine)").matches){
     heroArt.addEventListener("pointermove", function(e){
       var r = heroArt.getBoundingClientRect();
@@ -1394,7 +1504,34 @@
     heroArt.addEventListener("pointerleave", function(){
       heroArt.style.setProperty("--px", "0");
       heroArt.style.setProperty("--py", "0");
+      if (modelFlip) modelFlip.classList.remove("is-flipped");
     });
+    if (modelFlip){
+      heroArt.addEventListener("pointerenter", function(){
+        modelFlip.classList.add("is-flipped");
+      });
+    }
+  }
+
+  var modelNode = document.querySelector(".model");
+  var modelShards = document.querySelectorAll(".model__shards i");
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (modelNode && modelShards.length && !reduceMotion){
+    var shardOffsets = [[-130,-90,-24],[120,-70,22],[-110,80,18],[130,100,-20],[0,-120,32],[90,150,40]];
+    for (var sh = 0; sh < modelShards.length; sh++){
+      var o = shardOffsets[sh] || [0,0,0];
+      modelShards[sh].style.setProperty("--sx", o[0] + "px");
+      modelShards[sh].style.setProperty("--sy", o[1] + "px");
+      modelShards[sh].style.setProperty("--sr", o[2] + "deg");
+    }
+    modelNode.classList.add("is-assembling");
+    setTimeout(function(){
+      modelNode.classList.add("is-shown");
+    }, 620);
+    setTimeout(function(){
+      modelNode.classList.remove("is-assembling");
+    }, 1600);
+    setTimeout(function(){ playBoom(); }, 1050);
   }
 
   var rain = document.getElementById("rain");
@@ -1658,6 +1795,47 @@
     } else {
       setTimeout(hideSplash, 900);
     }
+  }
+
+  var soundToggle = document.getElementById("soundToggle");
+  var audioCtx = null;
+  var soundOn = false;
+  try { soundOn = sessionStorage.getItem("lincoln-sound") === "1"; } catch (e) {}
+  function ensureAudio(){
+    if (!audioCtx){
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) audioCtx = new AC();
+    }
+    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+  }
+  function playBoom(){
+    if (!soundOn || !audioCtx) return;
+    var t = audioCtx.currentTime;
+    var osc = audioCtx.createOscillator();
+    var gain = audioCtx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(120, t);
+    osc.frequency.exponentialRampToValueAtTime(38, t + .5);
+    gain.gain.setValueAtTime(.0001, t);
+    gain.gain.exponentialRampToValueAtTime(.5, t + .04);
+    gain.gain.exponentialRampToValueAtTime(.0001, t + .75);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(t);
+    osc.stop(t + .8);
+  }
+  if (soundToggle){
+    if (soundOn){
+      soundToggle.setAttribute("aria-pressed", "true");
+      soundToggle.setAttribute("aria-label", "Выключить звук");
+    }
+    soundToggle.addEventListener("click", function(){
+      ensureAudio();
+      soundOn = !soundOn;
+      soundToggle.setAttribute("aria-pressed", soundOn ? "true" : "false");
+      soundToggle.setAttribute("aria-label", soundOn ? "Выключить звук" : "Включить звук");
+      try { sessionStorage.setItem("lincoln-sound", soundOn ? "1" : "0"); } catch (e) {}
+      if (soundOn) playBoom();
+    });
   }
 
   var cursorRing = document.getElementById("cursorRing");

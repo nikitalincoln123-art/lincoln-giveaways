@@ -575,6 +575,10 @@
   .timer__cell b{font-family:var(--mono);font-size:16px;font-weight:500;line-height:1.15;font-variant-numeric:tabular-nums;color:#F4F8FC}
   .timer__cell span{font-family:var(--mono);font-size:7.5px;letter-spacing:.16em;text-transform:uppercase;color:#69727C}
   .card__cta{width:100%;height:44px;font-size:10.5px;font-weight:600;letter-spacing:.15em;margin-top:2px;transform:translate(var(--dx,0),var(--dy,0));transition:transform .18s ease-out,border-color .35s ease,background-color .35s ease,box-shadow .35s ease;will-change:transform}
+  .card__cta.is-joined{background:rgba(70,120,100,.22);border-color:rgba(120,200,165,.5);color:#C6F0DC;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 22px rgba(90,190,150,.15)}
+  .card__cta.is-joined:hover{background:rgba(60,105,88,.3);border-color:rgba(255,120,120,.55);color:#FFC9C9}
+  .card__cta.is-locked{background:rgba(255,255,255,.02);border-color:rgba(255,255,255,.08);color:#525B65;cursor:not-allowed;box-shadow:none;transform:none}
+  .card__cta.is-locked::before{display:none}
   .card__archive-link{display:inline-flex;align-items:center;justify-content:center;gap:7px;margin-top:-3px;font-family:var(--mono);font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;color:#6F7A85;text-decoration:none;transition:color .25s ease}
   .card__archive-link:hover{color:#E7EDF3}
   .card__archive-link svg{transition:transform .25s ease}
@@ -1285,10 +1289,20 @@
   function isJoined(id){
     return !!getJoined()[id];
   }
-  function markJoined(id){
+  function joinedId(){
     var j = getJoined();
+    for (var k in j){
+      if (j[k]) return k;
+    }
+    return null;
+  }
+  function markJoined(id){
+    var j = {};
     j[id] = true;
     try { localStorage.setItem("lincoln-joined", JSON.stringify(j)); } catch (e) {}
+  }
+  function clearJoined(){
+    try { localStorage.removeItem("lincoln-joined"); } catch (e) {}
   }
   function findDraw(id){
     for (var i = 0; i < draws.length; i++){
@@ -1336,12 +1350,14 @@
       '</div>' +
       timerMarkup() +
       (isJoined(d.id)
-        ? '<button class="btn btn--primary card__cta is-joined" type="button" disabled>Вы участвуете' +
+        ? '<button class="btn btn--primary card__cta is-joined" type="button" data-cancel="' + d.id + '">Вы участвуете' +
           '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m2.5 8.5 3.2 3.2 7.8-7.8" stroke="currentColor" stroke-width="1.8"/></svg>' +
         '</button>'
-        : '<a class="btn btn--primary card__cta" href="https://t.me/' + encodeURIComponent(d.channel) + '" target="_blank" rel="noopener noreferrer" data-join="' + d.id + '">Участвовать' +
-          '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.6"/></svg>' +
-        '</a>') +
+        : joinedId()
+          ? '<button class="btn btn--primary card__cta is-locked" type="button" disabled>Выберите один розыгрыш</button>'
+          : '<a class="btn btn--primary card__cta" href="https://t.me/' + encodeURIComponent(d.channel) + '" target="_blank" rel="noopener noreferrer" data-join="' + d.id + '">Участвовать' +
+            '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.6"/></svg>' +
+          '</a>') +
       '<a class="card__archive-link" href="#archive-' + d.id + '">Архив победителей' +
         '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.5"/></svg>' +
       '</a>' +
@@ -1467,6 +1483,14 @@
     });
   }
   grid.addEventListener("click", function(e){
+    var cancel = e.target.closest("[data-cancel]");
+    if (cancel){
+      e.preventDefault();
+      clearJoined();
+      showToast("Участие отменено");
+      render();
+      return;
+    }
     var join = e.target.closest("[data-join]");
     if (join){
       e.preventDefault();

@@ -83,11 +83,6 @@
     font-family:var(--tech);font-size:13px;font-weight:700;
     letter-spacing:.3em;text-transform:uppercase;color:#F9FBFD;
   }
-  .brand__badge{
-    font-family:var(--mono);font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;
-    color:#8C959F;border:1px solid rgba(255,255,255,.13);padding:3px 6px;
-    background:rgba(255,255,255,.03);
-  }
   .brand svg{filter:drop-shadow(0 0 10px rgba(255,255,255,.12))}
   .nav__links{display:flex;gap:28px}
   .nav__links a{
@@ -440,19 +435,7 @@
   }
   .timer__cell b{font-family:var(--mono);font-size:16px;font-weight:500;line-height:1.15;font-variant-numeric:tabular-nums;color:#F4F8FC}
   .timer__cell span{font-family:var(--mono);font-size:7.5px;letter-spacing:.16em;text-transform:uppercase;color:#69727C}
-  .timer__done{
-    flex:1;display:flex;align-items:center;justify-content:center;
-    padding:9px;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
-    color:#79828C;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);
-  }
   .card__cta{width:100%;height:44px;font-size:10.5px;font-weight:600;letter-spacing:.15em;margin-top:2px}
-  .card.is-ended{opacity:.68}
-  .card.is-ended .live i{background:#8A939D;box-shadow:none;animation:none}
-  .card.is-ended .card__cta{
-    pointer-events:none;background:rgba(255,255,255,.03);color:#79828C;
-    border-color:rgba(255,255,255,.08);box-shadow:none;
-  }
-  .card.is-ended .card__cta svg{display:none}
   .card--featured{grid-column:span 2;padding:46px 26px 26px;min-height:360px;background-color:rgba(0,0,0,.68)}
   .card--featured .card__title{font-size:clamp(24px,2.5vw,32px);font-weight:600;max-width:17ch}
   .card--featured .fact strong{font-size:17px}
@@ -499,6 +482,26 @@
   .step h3{margin:22px 0 9px;font-family:var(--tech);font-size:18px;font-weight:400;letter-spacing:.01em;color:#F1F5F8}
   .step p{margin:0;color:#7F8892;font-size:13.5px;line-height:1.62;max-width:34ch}
   .step p b{color:#C9D2DA;font-weight:600}
+  .step p a{color:#DCE4EB;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.3)}
+  .step p a:hover{border-color:#fff}
+  .contact-bar{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    margin-top:16px;padding:16px 20px;
+    border:1px solid rgba(255,255,255,.12);
+    background:linear-gradient(100deg,rgba(255,255,255,.055),rgba(255,255,255,.015));
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    text-decoration:none;
+    transition:border-color .3s ease,background .3s ease,transform .3s ease;
+  }
+  .contact-bar:hover{
+    border-color:rgba(255,255,255,.32);
+    background:linear-gradient(100deg,rgba(255,255,255,.085),rgba(255,255,255,.025));
+    transform:translateY(-2px);
+  }
+  .contact-bar__label{font-size:12.5px;letter-spacing:.01em;color:#8F99A3}
+  .contact-bar__value{font-family:var(--tech);font-size:16px;font-weight:600;color:#F1F5F8}
+  .contact-bar__arrow{margin-left:auto;color:#AEB8C2;transition:transform .3s ease}
+  .contact-bar:hover .contact-bar__arrow{transform:translateX(4px)}
 
   /* ---------- safety ---------- */
   .safety{
@@ -646,7 +649,6 @@
     .footer__bottom{font-size:8.5px}
   }
   @media (max-width:420px){
-    .brand__badge{display:none}
     .nav__cta .btn{padding:0 13px;font-size:9px}
     .timer__cell b{font-size:14px}
     .card--featured .timer__cell b{font-size:17px}
@@ -671,7 +673,6 @@
         <path d="M12 1v26M2 9.2l10 4.6 10-4.6M5.5 21.5 12 13.8l6.5 7.7" stroke="#E6EDF4" stroke-opacity=".45" stroke-width=".8"/>
       </svg>
       <span class="brand__name">Lincoln</span>
-      <span class="brand__badge">демо</span>
     </a>
     <nav class="nav__links" aria-label="Основная навигация">
       <a href="#draws">Розыгрыши</a>
@@ -690,7 +691,7 @@
     <div class="wrap hero__grid">
       <div class="hero__copy">
         <a class="eyebrow" href="https://t.me/AdapterLincoln" target="_blank" rel="noopener noreferrer"><i></i>Канал @AdapterLincoln · ноябрь 2026</a>
-        <h1>Розыгрыши Telegram<br><span class="grad">без мутных условий</span></h1>
+        <h1>Розыгрыши Telegram<br><span class="grad">От Lincoln</span></h1>
         <p class="hero__lead">Пять активных розыгрышей канала <a href="https://t.me/AdapterLincoln" target="_blank" rel="noopener noreferrer">@AdapterLincoln</a>: звёзды, NFT-подарки и услуги. <b>Без оплат, регистраций и&nbsp;сбора данных.</b></p>
         <div class="hero__actions">
           <a class="btn btn--primary" href="#draws">
@@ -749,25 +750,30 @@
           <div class="kicker">Три шага</div>
           <h2>Как участвовать</h2>
         </div>
-        <p class="section__sub">Одинаковый сценарий во всех розыгрышах витрины</p>
+        <p class="section__sub">Общий порядок — условия зависят от розыгрыша</p>
       </div>
       <div class="steps">
         <div class="step">
           <div class="step__num">01</div>
-          <h3>Выберите розыгрыш</h3>
-          <p>Посмотрите на таймер: участвовать можно, пока он не дошёл до нуля.</p>
+          <h3>Участвуйте до конца таймера</h3>
+          <p>Нажмите <b>«Участвовать»</b>, подпишитесь на канал и поставьте реакцию на последний пост. Когда обратный отсчёт закончится — розыгрыш окончен.</p>
         </div>
         <div class="step">
           <div class="step__num">02</div>
-          <h3>Подпишитесь на канал</h3>
-          <p>Кнопка <b>«Участвовать»</b> открывает Telegram. Дальше — подписка на канал и кнопка под постом розыгрыша.</p>
+          <h3>Пришлите доказательства</h3>
+          <p>После окончания таймера напишите мне в личные сообщения — <a href="https://t.me/LincolnWasted" target="_blank" rel="noopener noreferrer">@LincolnWasted</a> — и приложите доказательства участия: подписку и реакцию на посте.</p>
         </div>
         <div class="step">
           <div class="step__num">03</div>
-          <h3>Дождитесь итогов</h3>
-          <p>Победителя выбирает организатор — обычно случайным образом. Результаты публикуются в том же канале.</p>
+          <h3>Приз — первым 10</h3>
+          <p>Первые 10 человек, кто пришлёт доказательства, получат приз. Условие про 10 человек действует только для розыгрышей мишек — у остальных розыгрышей свои условия, они будут обновляться.</p>
         </div>
       </div>
+      <a class="contact-bar" href="https://t.me/LincolnWasted" target="_blank" rel="noopener noreferrer">
+        <span class="contact-bar__label">Для дополнительных вопросов обращайтесь к</span>
+        <span class="contact-bar__value">@LincolnWasted</span>
+        <svg class="contact-bar__arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.5"/></svg>
+      </a>
     </div>
   </section>
 
@@ -808,15 +814,15 @@
       <div class="faq">
         <details>
           <summary>Это официальный сервис Telegram?</summary>
-          <p>Нет. «Lincoln» — демонстрационная витрина канала @AdapterLincoln, не связанная с Telegram. Данные на странице приведены как пример; актуальные условия и итоги — в канале.</p>
+          <p>Нет. «Lincoln» — витрина канала @AdapterLincoln, не связанная с Telegram. Актуальные условия и итоги — в канале.</p>
         </details>
         <details>
           <summary>Кто выбирает победителя?</summary>
-          <p>Организатор @AdapterLincoln — обычно через Telegram-бота со случайной выборкой. Витрина не участвует в проведении розыгрыша и не влияет на результат.</p>
+          <p>Победителей определяет организатор по условиям конкретного розыгрыша. В розыгрышах мишек приз получают первые 10 человек с доказательствами участия; у остальных розыгрышей свои правила.</p>
         </details>
         <details>
           <summary>Можно участвовать в нескольких розыгрышах?</summary>
-          <p>Да, ограничений на стороне витрины нет. У каждого канала свои правила: где-то нужна подписка на несколько каналов, где-то — только один клик.</p>
+          <p>Да, ограничений на стороне витрины нет. У каждого розыгрыша свои условия — смотрите карточку и пост в канале.</p>
         </details>
         <details>
           <summary>Что делать, если розыгрыш просит деньги?</summary>
@@ -837,9 +843,8 @@
             <path d="M12 1v26M2 9.2l10 4.6 10-4.6" stroke="#E6EDF4" stroke-opacity=".4" stroke-width=".8"/>
           </svg>
           <span class="brand__name">Lincoln</span>
-          <span class="brand__badge">демо</span>
         </div>
-        <p class="footer__note"><b>Витрина канала <a href="https://t.me/AdapterLincoln" target="_blank" rel="noopener noreferrer">@AdapterLincoln</a>.</b> Автор — <a href="https://t.me/LincolnWasted" target="_blank" rel="noopener noreferrer">@LincolnWasted</a>. Демонстрационные данные; актуальные условия и итоги — в Telegram. Страница не аффилирована с Telegram.</p>
+        <p class="footer__note"><b>Витрина канала <a href="https://t.me/AdapterLincoln" target="_blank" rel="noopener noreferrer">@AdapterLincoln</a>.</b> Автор — <a href="https://t.me/LincolnWasted" target="_blank" rel="noopener noreferrer">@LincolnWasted</a>. Актуальные условия и итоги — в Telegram. Страница не аффилирована с Telegram.</p>
       </div>
       <div class="footer__links">
         <a href="#draws">Розыгрыши</a>
@@ -861,11 +866,11 @@
   "use strict";
 
   var draws = [
-    { id: 1, title: "Раздача 10-ти мишек", channel: "AdapterLincoln", ends: "2026-11-14T21:00:00+03:00", featured: true },
-    { id: 2, title: "100 звезд на аккаунт", channel: "AdapterLincoln", ends: "2026-11-15T20:00:00+03:00" },
-    { id: 3, title: "Виртуальный номер", channel: "AdapterLincoln", ends: "2026-11-16T19:00:00+03:00" },
-    { id: 4, title: "Любой NFT-Подарок до 300 звезд", channel: "AdapterLincoln", ends: "2026-11-18T21:00:00+03:00" },
-    { id: 5, title: "Любые услуги бесплатно", channel: "AdapterLincoln", ends: "2026-11-19T20:00:00+03:00" }
+    { id: 1, title: "Раздача 10-ти мишек", channel: "AdapterLincoln", featured: true },
+    { id: 2, title: "100 звезд на аккаунт", channel: "AdapterLincoln" },
+    { id: 3, title: "Виртуальный номер", channel: "AdapterLincoln" },
+    { id: 4, title: "Любой NFT-Подарок до 300 звезд", channel: "AdapterLincoln" },
+    { id: 5, title: "Любые услуги бесплатно", channel: "AdapterLincoln" }
   ];
 
   var grid = document.getElementById("grid");
@@ -876,12 +881,12 @@
     });
   }
 
-  function timerMarkup(ends){
-    return '<div class="timer" data-ends="' + ends + '">' +
-      '<div class="timer__cell"><b>—</b><span>дн</span></div>' +
-      '<div class="timer__cell"><b>—</b><span>ч</span></div>' +
-      '<div class="timer__cell"><b>—</b><span>мин</span></div>' +
-      '<div class="timer__cell"><b>—</b><span>сек</span></div>' +
+  function timerMarkup(){
+    return '<div class="timer">' +
+      '<div class="timer__cell"><b>00</b><span>дн</span></div>' +
+      '<div class="timer__cell"><b>00</b><span>ч</span></div>' +
+      '<div class="timer__cell"><b>00</b><span>мин</span></div>' +
+      '<div class="timer__cell"><b>00</b><span>сек</span></div>' +
     '</div>';
   }
 
@@ -902,53 +907,12 @@
         '<div class="fact"><span>Призовой фонд</span><strong>—</strong></div>' +
         '<div class="fact"><span>Участников</span><strong>—</strong></div>' +
       '</div>' +
-      timerMarkup(d.ends) +
+      timerMarkup() +
       '<a class="btn btn--primary card__cta" href="https://t.me/' + encodeURIComponent(d.channel) + '" target="_blank" rel="noopener noreferrer">Участвовать' +
         '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.6"/></svg>' +
       '</a>' +
       (featured ? '<span class="card__ghost" aria-hidden="true">Lincoln</span>' : '') +
     '</article>';
-  }
-
-  function pad(n){
-    return n < 10 ? "0" + n : String(n);
-  }
-
-  function updateTimers(){
-    var now = Date.now();
-    var nodes = document.querySelectorAll(".timer[data-ends]");
-    for (var i = 0; i < nodes.length; i++){
-      var el = nodes[i];
-      var end = new Date(el.getAttribute("data-ends")).getTime();
-      var diff = end - now;
-      var card = el.closest(".card");
-      if (diff <= 0){
-        if (card && card.classList.contains("is-ended")) continue;
-        el.innerHTML = '<span class="timer__done">розыгрыш завершён</span>';
-        if (card){
-          card.classList.add("is-ended");
-          var live = card.querySelector(".live");
-          if (live) live.innerHTML = "<i></i>завершён";
-          var cta = card.querySelector(".card__cta");
-          if (cta){
-            cta.removeAttribute("href");
-            cta.setAttribute("aria-disabled", "true");
-            cta.textContent = "Розыгрыш завершён";
-          }
-        }
-        continue;
-      }
-      var total = Math.floor(diff / 1000);
-      var d = Math.floor(total / 86400);
-      var h = Math.floor((total % 86400) / 3600);
-      var m = Math.floor((total % 3600) / 60);
-      var s = total % 60;
-      el.innerHTML =
-        '<div class="timer__cell"><b>' + d + '</b><span>дн</span></div>' +
-        '<div class="timer__cell"><b>' + pad(h) + '</b><span>ч</span></div>' +
-        '<div class="timer__cell"><b>' + pad(m) + '</b><span>мин</span></div>' +
-        '<div class="timer__cell"><b>' + pad(s) + '</b><span>сек</span></div>';
-    }
   }
 
   function bindTilt(){
@@ -978,11 +942,9 @@
   function render(){
     grid.innerHTML = draws.map(cardMarkup).join("");
     bindTilt();
-    updateTimers();
   }
 
   render();
-  setInterval(updateTimers, 1000);
 
   var rain = document.getElementById("rain");
   if (rain && rain.getContext && !window.matchMedia("(prefers-reduced-motion: reduce)").matches){
@@ -1042,6 +1004,20 @@
       window.addEventListener("resize", size);
       requestAnimationFrame(frame);
     })();
+  }
+
+  var prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var anchors = document.querySelectorAll('a[href^="#"]');
+  for (var a = 0; a < anchors.length; a++){
+    anchors[a].addEventListener("click", function(e){
+      var id = this.getAttribute("href");
+      if (!id || id === "#") return;
+      var target = document.querySelector(id);
+      if (!target) return;
+      e.preventDefault();
+      target.scrollIntoView({ behavior: prefersReduced.matches ? "auto" : "smooth", block: "start" });
+      if (history.pushState) history.pushState(null, "", id);
+    });
   }
 
   var nav = document.getElementById("nav");

@@ -1,11 +1,12 @@
 # Lincoln — витрина розыгрышей
 
-Одностраничная витрина активных розыгрышей Telegram-канала [@AdapterLincoln](https://t.me/AdapterLincoln).
+Одностраничная витрина розыгрышей Telegram-канала [@AdapterLincoln](https://t.me/AdapterLincoln).
 
-- 5 карточек розыгрышей с живыми таймерами
+- 5 карточек розыгрышей; таймеры обнулены (`00:00:00:00`)
+- условия участия и контакт автора
 - анимированный фон с никами `LincolnWasted`
 - 3D-плита Lincoln на чистом CSS
-- адаптив под мобильные и десктоп
+- адаптив и плавный скролл
 - без бэкенда, сборок и внешних зависимостей
 
 ## Локальный запуск
@@ -16,6 +17,10 @@
 
 GitHub Pages: https://nikitalincoln123-art.github.io/lincoln-giveaways/
 
+## Настройка
+
+Список розыгрышей задаётся массивом `draws` в `index.html`, тексты шагов — в секции `#how`.
+
 ## Данные
 
-Все розыгрыши, призы и участники на странице — демонстрационные. Актуальные условия и итоги публикуются в Telegram-канале [@AdapterLincoln](https://t.me/AdapterLincoln). Автор — [@LincolnWasted](https://t.me/LincolnWasted).
+Актуальные условия и итоги публикуются в Telegram-канале [@AdapterLincoln](https://t.me/AdapterLincoln). Автор — [@LincolnWasted](https://t.me/LincolnWasted).

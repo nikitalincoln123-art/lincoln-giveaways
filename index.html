@@ -579,6 +579,10 @@
   .card__cta.is-joined:hover{background:rgba(60,105,88,.3);border-color:rgba(255,120,120,.55);color:#FFC9C9}
   .card__cta.is-locked{background:rgba(255,255,255,.02);border-color:rgba(255,255,255,.08);color:#525B65;cursor:not-allowed;box-shadow:none;transform:none}
   .card__cta.is-locked::before{display:none}
+  .card__cta.is-noactive,.modal__cta.is-noactive{background:rgba(255,255,255,.02);border-color:rgba(255,255,255,.1);color:#6B7580;cursor:not-allowed;box-shadow:none;opacity:.75}
+  .card__cta.is-noactive::before,.modal__cta.is-noactive::before{display:none}
+  .card__cta.is-noactive svg,.modal__cta.is-noactive svg{color:#5A6470}
+  .card__cta.is-noactive:hover,.modal__cta.is-noactive:hover{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.03);color:#7E8791;transform:none}
   .card__archive-link{display:inline-flex;align-items:center;justify-content:center;gap:7px;margin-top:-3px;font-family:var(--mono);font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;color:#6F7A85;text-decoration:none;transition:color .25s ease}
   .card__archive-link:hover{color:#E7EDF3}
   .card__archive-link svg{transition:transform .25s ease}
@@ -1283,27 +1287,6 @@
   var grid = document.getElementById("grid");
   var archive = document.getElementById("archive");
 
-  function getJoined(){
-    try { return JSON.parse(localStorage.getItem("lincoln-joined") || "{}") || {}; } catch (e) { return {}; }
-  }
-  function isJoined(id){
-    return !!getJoined()[id];
-  }
-  function joinedId(){
-    var j = getJoined();
-    for (var k in j){
-      if (j[k]) return k;
-    }
-    return null;
-  }
-  function markJoined(id){
-    var j = {};
-    j[id] = true;
-    try { localStorage.setItem("lincoln-joined", JSON.stringify(j)); } catch (e) {}
-  }
-  function clearJoined(){
-    try { localStorage.removeItem("lincoln-joined"); } catch (e) {}
-  }
   function findDraw(id){
     for (var i = 0; i < draws.length; i++){
       if (draws[i].id === Number(id)) return draws[i];
@@ -1311,7 +1294,7 @@
     return null;
   }
   function cardCounter(d){
-    return d.participants + (isJoined(d.id) ? 1 : 0);
+    return d.participants;
   }
 
   function esc(s){
@@ -1349,15 +1332,9 @@
         '<div class="fact"><span>Участников</span><strong>' + cardCounter(d) + '</strong></div>' +
       '</div>' +
       timerMarkup() +
-      (isJoined(d.id)
-        ? '<button class="btn btn--primary card__cta is-joined" type="button" data-cancel="' + d.id + '">Вы участвуете' +
-          '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m2.5 8.5 3.2 3.2 7.8-7.8" stroke="currentColor" stroke-width="1.8"/></svg>' +
-        '</button>'
-        : joinedId()
-          ? '<button class="btn btn--primary card__cta is-locked" type="button" disabled>Выберите один розыгрыш</button>'
-          : '<a class="btn btn--primary card__cta" href="https://t.me/' + encodeURIComponent(d.channel) + '" target="_blank" rel="noopener noreferrer" data-join="' + d.id + '">Участвовать' +
-            '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.6"/></svg>' +
-          '</a>') +
+      '<button class="btn btn--primary card__cta is-noactive" type="button" data-noactive="1">Участвовать' +
+        '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.6"/></svg>' +
+      '</button>' +
       '<a class="card__archive-link" href="#archive-' + d.id + '">Архив победителей' +
         '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.5"/></svg>' +
       '</a>' +
@@ -1459,10 +1436,10 @@
       '<h3>' + esc(d.title) + '</h3>' +
       status +
       rules +
-      '<a class="btn btn--primary modal__cta" href="https://t.me/' + encodeURIComponent(d.channel) + '" target="_blank" rel="noopener noreferrer">Участвовать' +
+      '<button class="btn btn--primary modal__cta is-noactive" type="button" data-noactive="1">Участвовать' +
         '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.6"/></svg>' +
-      '</a>' +
-      '<p class="modal__hint">Доказательства участия отправляйте @LincolnWasted.</p>';
+      '</button>' +
+      '<p class="modal__hint">Розыгрышей пока не намечается — следите за каналом @AdapterLincoln.</p>';
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
@@ -1483,20 +1460,10 @@
     });
   }
   grid.addEventListener("click", function(e){
-    var cancel = e.target.closest("[data-cancel]");
-    if (cancel){
+    var noactive = e.target.closest("[data-noactive]");
+    if (noactive){
       e.preventDefault();
-      clearJoined();
-      showToast("Участие отменено");
-      render();
-      return;
-    }
-    var join = e.target.closest("[data-join]");
-    if (join){
-      e.preventDefault();
-      markJoined(join.getAttribute("data-join"));
-      showToast("Вы участвуете в розыгрыше");
-      render();
+      showToast("Розыгрышей пока не намечается...");
       return;
     }
     if (e.target.closest("a")) return;

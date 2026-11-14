@@ -1281,7 +1281,7 @@
   "use strict";
 
   var draws = [
-    { id: 1, title: "Раздача 6-ти мишек", channel: "AdapterLincoln", icon: "bears", featured: true, winners: [], participants: 0, prize: "6 мишек",
+    { id: 1, title: "Раздача 6-ти мишек", channel: "AdapterLincoln", icon: "bears", featured: true, active: true, winners: [], participants: 0, prize: "6 мишек",
       rules: [
         "Нажмите «Участвовать», подпишитесь на канал и поставьте реакцию на последний пост.",
         "После завершения таймера пришлите скриншот подписки и реакции в личные сообщения @LincolnWasted.",
@@ -1336,10 +1336,11 @@
   }
   function isJoined(id){
     var j = storedJoined("lincoln-joined");
-    return !!j[id];
+    return !!(j && (j.id === String(id) || j[id]));
   }
   function markJoined(id){
-    var j = { id: String(id), t: Date.now() };
+    var j = storedJoined("lincoln-joined");
+    j = { id: String(id), t: Date.now() };
     try { localStorage.setItem("lincoln-joined", JSON.stringify(j)); } catch (e) {}
   }
   function clearJoined(){
@@ -1356,12 +1357,36 @@
   }
 
   function timerMarkup(){
-    return '<div class="timer">' +
+    return '<div class="timer" data-seconds="1200">' +
       '<div class="timer__cell"><b>00</b><span>дн</span></div>' +
       '<div class="timer__cell"><b>00</b><span>ч</span></div>' +
       '<div class="timer__cell"><b>20</b><span>мин</span></div>' +
       '<div class="timer__cell"><b>00</b><span>сек</span></div>' +
     '</div>';
+  }
+  function pad2(n){ return n < 10 ? "0" + n : String(n); }
+  var timerBase = Date.now();
+  function startTimers(){
+    var nodes = document.querySelectorAll(".timer[data-seconds]");
+    for (var i = 0; i < nodes.length; i++){
+      (function(el){
+        var left = parseInt(el.getAttribute("data-seconds"), 10) || 1200;
+        function tick(){
+          var elapsed = Math.floor((Date.now() - timerBase) / 1000);
+          var v = Math.max(0, left - elapsed);
+          var cells = el.querySelectorAll(".timer__cell b");
+          if (cells.length === 4){
+            cells[0].textContent = pad2(Math.floor(v / 86400));
+            cells[1].textContent = pad2(Math.floor((v % 86400) / 3600));
+            cells[2].textContent = pad2(Math.floor((v % 3600) / 60));
+            cells[3].textContent = pad2(v % 60);
+          }
+          if (v > 0){ el.__tick = setTimeout(tick, 1000); }
+        }
+        clearTimeout(el.__tick);
+        tick();
+      })(nodes[i]);
+    }
   }
 
   function cardMarkup(d, i){
@@ -1373,7 +1398,9 @@
       (featured ? '<span class="ribbon">Главный розыгрыш</span>' : '') +
       '<div class="card__head">' +
         '<span class="tag">' + index + '</span>' +
-        '<span class="live live--on"><i></i>Проходит</span>' +
+        (d.active
+        ? '<span class="live live--on"><i></i>Проходит</span>'
+        : '<span class="live"><i></i>Ожидание</span>') +
       '</div>' +
       '<span class="card__icon" aria-hidden="true">' + (icons[d.icon] || icons.services) + '</span>' +
       '<span class="card__num" aria-hidden="true">' + index + '</span>' +
@@ -1476,13 +1503,14 @@
     grid.innerHTML = draws.map(cardMarkup).join("");
     archive.innerHTML = draws.map(archiveMarkup).join("");
     bindTilt();
+    startTimers();
   }
 
   var modal = document.getElementById("modal");
   var modalBody = document.getElementById("modalBody");
   function openModal(d){
     if (!modal || !modalBody) return;
-    var status = '<div class="modal__stat"><span>Статус</span><b style="color:#8FE3B8">Проходит</b></div>' +
+    var status = '<div class="modal__stat"><span>Статус</span><b style="color:' + (d.active ? "#8FE3B8" : "#8A939D") + '">' + (d.active ? "Проходит" : "Ожидание") + '</b></div>' +
       '<div class="modal__stat"><span>Канал</span><b>@' + esc(d.channel) + '</b></div>';
     var rules = d.rules && d.rules.length
       ? '<div class="modal__rules"><ol>' + d.rules.map(function(r){ return "<li>" + esc(r) + "</li>"; }).join("") + "</ol></div>"
@@ -1513,7 +1541,11 @@
   if (modal){
     modal.addEventListener("click", function(e){
       var t = e.target;
-      if (t && t.getAttribute && t.getAttribute("data-close") === "modal") closeModal();
+      if (t && t.getAttribute && t.getAttribute("data-close") === "modal"){ closeModal(); return; }
+      var join = t.closest ? t.closest("[data-join]") : null;
+      if (join){ e.preventDefault(); markJoined(join.getAttribute("data-join")); showToast("Вы участвуете в розыгрыше"); closeModal(); render(); return; }
+      var cancel = t.closest ? t.closest("[data-cancel]") : null;
+      if (cancel){ e.preventDefault(); clearJoined(); showToast("Участие отменено"); closeModal(); render(); return; }
     });
     document.addEventListener("keydown", function(e){
       if (e.key === "Escape" && modal.classList.contains("is-open")) closeModal();

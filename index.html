@@ -1425,22 +1425,29 @@ render();
   }
 
   function timerMarkup(){
-    return '<div class="timer" data-seconds="1200">' +
+    return '<div class="timer" data-seconds="54000">' +
       '<div class="timer__cell"><b>00</b><span>дн</span></div>' +
-      '<div class="timer__cell"><b>00</b><span>ч</span></div>' +
-      '<div class="timer__cell"><b>20</b><span>мин</span></div>' +
+      '<div class="timer__cell"><b>15</b><span>ч</span></div>' +
+      '<div class="timer__cell"><b>00</b><span>мин</span></div>' +
       '<div class="timer__cell"><b>00</b><span>сек</span></div>' +
     '</div>';
   }
   function pad2(n){ return n < 10 ? "0" + n : String(n); }
-  var timerBase = Date.now();
+  function timerStart(){
+    var k = "lincoln-timer-start";
+    var v = 0;
+    try { v = parseInt(localStorage.getItem(k), 10) || 0; } catch (e) {}
+    if (!v){ v = Date.now(); try { localStorage.setItem(k, String(v)); } catch (e) {} }
+    return v;
+  }
   function startTimers(){
     var nodes = document.querySelectorAll(".timer[data-seconds]");
+    var base = timerStart();
     for (var i = 0; i < nodes.length; i++){
       (function(el){
-        var left = parseInt(el.getAttribute("data-seconds"), 10) || 1200;
+        var left = parseInt(el.getAttribute("data-seconds"), 10) || 54000;
         function tick(){
-          var elapsed = Math.floor((Date.now() - timerBase) / 1000);
+          var elapsed = Math.max(0, Math.floor((Date.now() - base) / 1000));
           var v = Math.max(0, left - elapsed);
           var cells = el.querySelectorAll(".timer__cell b");
           if (cells.length === 4){
@@ -1467,8 +1474,8 @@ render();
       '<div class="card__head">' +
         '<span class="tag">' + index + '</span>' +
         (d.active
-        ? '<span class="live live--on"><i></i>Проходит</span>'
-        : '<span class="live"><i></i>Ожидание</span>') +
+        ? '<span class="live live--on"><i></i>По некоторым ошибкам, было добавлено 15 часов</span>'
+        : '<span class="live"><i></i>Участие не проходит</span>') +
       '</div>' +
       '<span class="card__icon" aria-hidden="true">' + (icons[d.icon] || icons.services) + '</span>' +
       '<span class="card__num" aria-hidden="true">' + index + '</span>' +
@@ -1478,14 +1485,16 @@ render();
         '<div class="fact"><span>Призовой фонд</span><strong>' + (d.prize || "—") + '</strong></div>' +
         '<div class="fact"><span>Участников</span><strong>' + cardCounter(d) + '</strong></div>' +
       '</div>' +
-      timerMarkup() +
+      (d.active ? timerMarkup() : '<div class="timer timer--off"><div class="timer__cell"><b>—</b><span>таймер</span></div></div>') +
       (isJoined(d.id)
         ? '<button class="btn btn--primary card__cta is-joined" type="button" data-cancel="' + d.id + '">Вы участвуете' +
           '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m2.5 8.5 3.2 3.2 7.8-7.8" stroke="currentColor" stroke-width="1.8"/></svg>' +
         '</button>'
-        : '<button class="btn btn--primary card__cta" type="button" data-join="' + d.id + '">Участвовать' +
-          '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.6"/></svg>' +
-        '</button>') +
+        : d.active
+          ? '<button class="btn btn--primary card__cta" type="button" data-join="' + d.id + '">Участвовать' +
+            '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.6"/></svg>' +
+          '</button>'
+          : '<button class="btn btn--primary card__cta is-locked" type="button" disabled>Участие не проходит</button>') +
       '<a class="card__archive-link" href="#archive-' + d.id + '">Архив победителей' +
         '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.5"/></svg>' +
       '</a>' +
@@ -1611,9 +1620,32 @@ render();
       var t = e.target;
       if (t && t.getAttribute && t.getAttribute("data-close") === "modal"){ closeModal(); return; }
       var join = t.closest ? t.closest("[data-join]") : null;
-      if (join){ e.preventDefault(); markJoined(join.getAttribute("data-join")); showToast("Вы участвуете в розыгрыше"); pushJoin(join.getAttribute("data-join")); closeModal(); return; }
+      if (join){
+        e.preventDefault();
+        var jid = join.getAttribute("data-join");
+        var already = isJoined(jid);
+        markJoined(jid);
+        var jd = findDraw(jid);
+        if (jd && !already) jd.participants = (jd.participants || 0) + 1;
+        render();
+        showToast("Вы участвуете в розыгрыше");
+        pushJoin(jid);
+        closeModal();
+        return;
+      }
       var cancel = t.closest ? t.closest("[data-cancel]") : null;
-      if (cancel){ e.preventDefault(); clearJoined(); showToast("Участие отменено"); cancelJoin(cancel.getAttribute("data-cancel")); closeModal(); return; }
+      if (cancel){
+        e.preventDefault();
+        var cid = cancel.getAttribute("data-cancel");
+        clearJoined();
+        var cd = findDraw(cid);
+        if (cd) cd.participants = Math.max(0, (cd.participants || 0) - 1);
+        render();
+        showToast("Участие отменено");
+        cancelJoin(cid);
+        closeModal();
+        return;
+      }
     });
     document.addEventListener("keydown", function(e){
       if (e.key === "Escape" && modal.classList.contains("is-open")) closeModal();
@@ -1623,17 +1655,26 @@ render();
     var cancel = e.target.closest("[data-cancel]");
     if (cancel){
       e.preventDefault();
+      var cid = cancel.getAttribute("data-cancel");
       clearJoined();
-      cancelJoin(cancel.getAttribute("data-cancel"));
+      var cd = findDraw(cid);
+      if (cd) cd.participants = Math.max(0, (cd.participants || 0) - 1);
+      render();
       showToast("Участие отменено");
+      cancelJoin(cid);
       return;
     }
     var join = e.target.closest("[data-join]");
     if (join){
       e.preventDefault();
-      markJoined(join.getAttribute("data-join"));
+      var jid = join.getAttribute("data-join");
+      var already = isJoined(jid);
+      markJoined(jid);
+      var jd = findDraw(jid);
+      if (jd && !already) jd.participants = (jd.participants || 0) + 1;
+      render();
       showToast("Вы участвуете в розыгрыше");
-      pushJoin(join.getAttribute("data-join"));
+      pushJoin(jid);
       return;
     }
     if (e.target.closest("a")) return;

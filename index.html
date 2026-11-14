@@ -1395,9 +1395,7 @@
         draws.forEach(function(d){
           d.participants = counts[d.id] || 0;
         });
-        sbReady = true;
-render();
-  syncCounts();
+sbReady = true;
       })
       .catch(function(){});
   }
@@ -1623,10 +1621,7 @@ render();
       if (join){
         e.preventDefault();
         var jid = join.getAttribute("data-join");
-        var already = isJoined(jid);
         markJoined(jid);
-        var jd = findDraw(jid);
-        if (jd && !already) jd.participants = (jd.participants || 0) + 1;
         render();
         showToast("Вы участвуете в розыгрыше");
         pushJoin(jid);
@@ -1638,8 +1633,6 @@ render();
         e.preventDefault();
         var cid = cancel.getAttribute("data-cancel");
         clearJoined();
-        var cd = findDraw(cid);
-        if (cd) cd.participants = Math.max(0, (cd.participants || 0) - 1);
         render();
         showToast("Участие отменено");
         cancelJoin(cid);
@@ -1657,8 +1650,6 @@ render();
       e.preventDefault();
       var cid = cancel.getAttribute("data-cancel");
       clearJoined();
-      var cd = findDraw(cid);
-      if (cd) cd.participants = Math.max(0, (cd.participants || 0) - 1);
       render();
       showToast("Участие отменено");
       cancelJoin(cid);
@@ -1668,10 +1659,7 @@ render();
     if (join){
       e.preventDefault();
       var jid = join.getAttribute("data-join");
-      var already = isJoined(jid);
       markJoined(jid);
-      var jd = findDraw(jid);
-      if (jd && !already) jd.participants = (jd.participants || 0) + 1;
       render();
       showToast("Вы участвуете в розыгрыше");
       pushJoin(jid);

@@ -552,6 +552,8 @@
   .live i{width:4px;height:4px;border-radius:50%;background:#fff;box-shadow:0 0 9px rgba(255,255,255,.85);animation:pulse 2.4s ease-in-out infinite}
   .live--off{height:22px;padding:0 9px;border:1px solid rgba(255,84,84,.42);background:rgba(255,46,46,.09);color:#FF9C9C;font-size:8px;letter-spacing:.1em;box-shadow:0 0 18px rgba(255,42,42,.2),inset 0 0 14px rgba(255,42,42,.06);animation:alertGlow 3.2s ease-in-out infinite}
   .live--off i{background:#FF4D4D;box-shadow:0 0 10px rgba(255,60,60,.95)}
+  .live--on{height:22px;padding:0 9px;border:1px solid rgba(90,200,150,.55);background:rgba(60,180,130,.12);color:#A6F0CD;font-size:8px;letter-spacing:.1em;box-shadow:0 0 16px rgba(70,200,150,.2),inset 0 0 12px rgba(70,200,150,.08)}
+  .live--on i{background:#54E0A4;box-shadow:0 0 10px rgba(90,230,160,.95)}
   .card__title{margin:0;font-family:var(--tech);font-size:20px;font-weight:600;line-height:1.26;letter-spacing:.004em;color:#F6F9FB}
   .card__channel{display:flex;align-items:center;gap:7px;margin:-7px 0 0;font-family:var(--mono);font-size:11px;letter-spacing:.02em;color:#727C86}
   .card__channel svg{color:#8A939D;flex:none;opacity:.8}
@@ -575,8 +577,8 @@
   .timer__cell b{font-family:var(--mono);font-size:16px;font-weight:500;line-height:1.15;font-variant-numeric:tabular-nums;color:#F4F8FC}
   .timer__cell span{font-family:var(--mono);font-size:7.5px;letter-spacing:.16em;text-transform:uppercase;color:#69727C}
   .card__cta{width:100%;height:44px;font-size:10.5px;font-weight:600;letter-spacing:.15em;margin-top:2px;transform:translate(var(--dx,0),var(--dy,0));transition:transform .18s ease-out,border-color .35s ease,background-color .35s ease,box-shadow .35s ease;will-change:transform}
-  .card__cta.is-joined{background:rgba(70,120,100,.22);border-color:rgba(120,200,165,.5);color:#C6F0DC;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 22px rgba(90,190,150,.15)}
-  .card__cta.is-joined:hover{background:rgba(60,105,88,.3);border-color:rgba(255,120,120,.55);color:#FFC9C9}
+  .card__cta.is-joined,.modal__cta.is-joined{background:rgba(70,120,100,.22);border-color:rgba(120,200,165,.5);color:#C6F0DC;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 22px rgba(90,190,150,.15)}
+  .card__cta.is-joined:hover,.modal__cta.is-joined:hover{background:rgba(60,105,88,.3);border-color:rgba(255,120,120,.55);color:#FFC9C9}
   .card__cta.is-locked{background:rgba(255,255,255,.02);border-color:rgba(255,255,255,.08);color:#525B65;cursor:not-allowed;box-shadow:none;transform:none}
   .card__cta.is-locked::before{display:none}
   .card__cta.is-noactive,.modal__cta.is-noactive{background:rgba(255,255,255,.02);border-color:rgba(255,255,255,.1);color:#6B7580;cursor:not-allowed;box-shadow:none;opacity:.75}
@@ -981,6 +983,15 @@
     .modal__panel{backdrop-filter:none;-webkit-backdrop-filter:none}
     .modal__backdrop{backdrop-filter:none;-webkit-backdrop-filter:none}
     .card__cta::before,.btn::before{animation:none}
+    .model{animation:none}
+    .model__plate{animation:none}
+    .model__flip{transition:none}
+    .hero__art::before,.hero__art::after{filter:none}
+    .model-mirror,.model-glint,.model__flash,.model-fx{display:none!important}
+    .card,.card--featured,.stat,.fact,.timer__cell{box-shadow:none!important}
+    .progress-bar,.to-top{display:none}
+    .section{opacity:1;transform:none;transition:none}
+    html{scroll-behavior:auto}
   }
 </style>
 </head>
@@ -1270,11 +1281,11 @@
   "use strict";
 
   var draws = [
-    { id: 1, title: "Раздача 10-ти мишек", channel: "AdapterLincoln", icon: "bears", featured: true, winners: [], participants: 0,
+    { id: 1, title: "Раздача 6-ти мишек", channel: "AdapterLincoln", icon: "bears", featured: true, winners: [], participants: 0, prize: "6 мишек",
       rules: [
         "Нажмите «Участвовать», подпишитесь на канал и поставьте реакцию на последний пост.",
         "После завершения таймера пришлите скриншот подписки и реакции в личные сообщения @LincolnWasted.",
-        "Первые 10 человек с доказательствами участия получат мишку."
+        "Первые 6 человек с доказательствами участия получат мишку."
       ] },
     { id: 2, title: "100 звезд на аккаунт", channel: "AdapterLincoln", icon: "stars", winners: [], participants: 0,
       rules: [
@@ -1320,8 +1331,22 @@
     }
     return null;
   }
+  function storedJoined(prefix){
+    try { return JSON.parse(localStorage.getItem(prefix) || "{}") || {}; } catch (e) { return {}; }
+  }
+  function isJoined(id){
+    var j = storedJoined("lincoln-joined");
+    return !!j[id];
+  }
+  function markJoined(id){
+    var j = { id: String(id), t: Date.now() };
+    try { localStorage.setItem("lincoln-joined", JSON.stringify(j)); } catch (e) {}
+  }
+  function clearJoined(){
+    try { localStorage.removeItem("lincoln-joined"); } catch (e) {}
+  }
   function cardCounter(d){
-    return d.participants;
+    return d.participants + (isJoined(d.id) ? 1 : 0);
   }
 
   function esc(s){
@@ -1334,7 +1359,7 @@
     return '<div class="timer">' +
       '<div class="timer__cell"><b>00</b><span>дн</span></div>' +
       '<div class="timer__cell"><b>00</b><span>ч</span></div>' +
-      '<div class="timer__cell"><b>00</b><span>мин</span></div>' +
+      '<div class="timer__cell"><b>20</b><span>мин</span></div>' +
       '<div class="timer__cell"><b>00</b><span>сек</span></div>' +
     '</div>';
   }
@@ -1348,20 +1373,24 @@
       (featured ? '<span class="ribbon">Главный розыгрыш</span>' : '') +
       '<div class="card__head">' +
         '<span class="tag">' + index + '</span>' +
-        '<span class="live live--off"><i></i>Не проходит на данный момент</span>' +
+        '<span class="live live--on"><i></i>Проходит</span>' +
       '</div>' +
       '<span class="card__icon" aria-hidden="true">' + (icons[d.icon] || icons.services) + '</span>' +
       '<span class="card__num" aria-hidden="true">' + index + '</span>' +
       '<h3 class="card__title">' + esc(d.title) + '</h3>' +
       '<p class="card__channel">' + tg + '<b>@' + esc(d.channel) + '</b></p>' +
       '<div class="card__facts">' +
-        '<div class="fact"><span>Призовой фонд</span><strong>—</strong></div>' +
+        '<div class="fact"><span>Призовой фонд</span><strong>' + (d.prize || "—") + '</strong></div>' +
         '<div class="fact"><span>Участников</span><strong>' + cardCounter(d) + '</strong></div>' +
       '</div>' +
       timerMarkup() +
-      '<button class="btn btn--primary card__cta is-noactive" type="button" data-noactive="1">Участвовать' +
-        '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.6"/></svg>' +
-      '</button>' +
+      (isJoined(d.id)
+        ? '<button class="btn btn--primary card__cta is-joined" type="button" data-cancel="' + d.id + '">Вы участвуете' +
+          '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m2.5 8.5 3.2 3.2 7.8-7.8" stroke="currentColor" stroke-width="1.8"/></svg>' +
+        '</button>'
+        : '<button class="btn btn--primary card__cta" type="button" data-join="' + d.id + '">Участвовать' +
+          '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.6"/></svg>' +
+        '</button>') +
       '<a class="card__archive-link" href="#archive-' + d.id + '">Архив победителей' +
         '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.5"/></svg>' +
       '</a>' +
@@ -1453,7 +1482,7 @@
   var modalBody = document.getElementById("modalBody");
   function openModal(d){
     if (!modal || !modalBody) return;
-    var status = '<div class="modal__stat"><span>Статус</span><b style="color:#FF9C9C">Не проходит на данный момент</b></div>' +
+    var status = '<div class="modal__stat"><span>Статус</span><b style="color:#8FE3B8">Проходит</b></div>' +
       '<div class="modal__stat"><span>Канал</span><b>@' + esc(d.channel) + '</b></div>';
     var rules = d.rules && d.rules.length
       ? '<div class="modal__rules"><ol>' + d.rules.map(function(r){ return "<li>" + esc(r) + "</li>"; }).join("") + "</ol></div>"
@@ -1463,10 +1492,14 @@
       '<h3>' + esc(d.title) + '</h3>' +
       status +
       rules +
-      '<button class="btn btn--primary modal__cta is-noactive" type="button" data-noactive="1">Участвовать' +
-        '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.6"/></svg>' +
-      '</button>' +
-      '<p class="modal__hint">Розыгрышей пока не намечается — следите за каналом @AdapterLincoln.</p>';
+      (isJoined(d.id)
+        ? '<button class="btn btn--primary modal__cta is-joined" type="button" data-cancel="' + d.id + '">Вы участвуете' +
+          '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m2.5 8.5 3.2 3.2 7.8-7.8" stroke="currentColor" stroke-width="1.8"/></svg>' +
+        '</button>'
+        : '<button class="btn btn--primary modal__cta" type="button" data-join="' + d.id + '">Участвовать' +
+          '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.6"/></svg>' +
+        '</button>') +
+      '<p class="modal__hint">Доказательства участия отправляйте @LincolnWasted.</p>';
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
@@ -1487,10 +1520,20 @@
     });
   }
   grid.addEventListener("click", function(e){
-    var noactive = e.target.closest("[data-noactive]");
-    if (noactive){
+    var cancel = e.target.closest("[data-cancel]");
+    if (cancel){
       e.preventDefault();
-      showToast("Розыгрышей пока не намечается...");
+      clearJoined();
+      showToast("Участие отменено");
+      render();
+      return;
+    }
+    var join = e.target.closest("[data-join]");
+    if (join){
+      e.preventDefault();
+      markJoined(join.getAttribute("data-join"));
+      showToast("Вы участвуете в розыгрыше");
+      render();
       return;
     }
     if (e.target.closest("a")) return;

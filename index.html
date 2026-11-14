@@ -1350,6 +1350,74 @@
     return d.participants + (isJoined(d.id) ? 1 : 0);
   }
 
+  var SB_URL = "https://cxkmsmoxvzyjzhzsehjp.supabase.co";
+  var SB_KEY = "sb_publishable_EpzWIYq2t_OExXjbzibLlw_UcZnRDON";
+  var sbReady = false;
+  function sbHeaders(){
+    return {
+      "apikey": SB_KEY,
+      "Authorization": "Bearer " + SB_KEY,
+      "Content-Type": "application/json"
+    };
+  }
+  function sbGet(url){
+    return fetch(url, { headers: sbHeaders() }).then(function(r){ return r.json(); });
+  }
+  function sbPost(url, body){
+    return fetch(url, {
+      method: "POST",
+      headers: sbHeaders(),
+      body: JSON.stringify(body)
+    }).then(function(r){ return r.json(); });
+  }
+  function sbDelete(url){
+    return fetch(url, { method: "DELETE", headers: sbHeaders() }).then(function(r){ return r.json(); });
+  }
+  function browserUuid(){
+    var k = "lincoln-uuid";
+    var u = null;
+    try { u = localStorage.getItem(k); } catch (e) {}
+    if (!u){
+      u = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c){
+        var r = Math.random() * 16 | 0;
+        return (c === "x" ? r : (r & 3 | 8)).toString(16);
+      });
+      try { localStorage.setItem(k, u); } catch (e) {}
+    }
+    return u;
+  }
+  function syncCounts(){
+    return sbGet(SB_URL + "/rest/v1/participants?select=draw_id")
+      .then(function(rows){
+        if (!Array.isArray(rows)) return;
+        var counts = {};
+        rows.forEach(function(r){ counts[r.draw_id] = (counts[r.draw_id] || 0) + 1; });
+        draws.forEach(function(d){
+          d.participants = counts[d.id] || 0;
+        });
+        sbReady = true;
+render();
+  syncCounts();
+      })
+      .catch(function(){});
+  }
+  function pushJoin(id){
+    var bid = browserUuid();
+    return sbDelete(SB_URL + "/rest/v1/participants?browser_uuid=eq." + encodeURIComponent(bid))
+      .then(function(){
+        return sbPost(SB_URL + "/rest/v1/participants?on_conflict=draw_id,browser_uuid", {
+          draw_id: Number(id),
+          browser_uuid: bid
+        });
+      })
+      .then(function(){ return syncCounts(); })
+      .catch(function(){});
+  }
+  function cancelJoin(id){
+    return sbDelete(SB_URL + "/rest/v1/participants?draw_id=eq." + Number(id) + "&browser_uuid=eq." + encodeURIComponent(browserUuid()))
+      .then(function(){ return syncCounts(); }).catch(function(){});
+  }
+
   function esc(s){
     return String(s).replace(/[&<>"']/g, function(c){
       return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
@@ -1543,9 +1611,9 @@
       var t = e.target;
       if (t && t.getAttribute && t.getAttribute("data-close") === "modal"){ closeModal(); return; }
       var join = t.closest ? t.closest("[data-join]") : null;
-      if (join){ e.preventDefault(); markJoined(join.getAttribute("data-join")); showToast("Вы участвуете в розыгрыше"); closeModal(); render(); return; }
+      if (join){ e.preventDefault(); markJoined(join.getAttribute("data-join")); showToast("Вы участвуете в розыгрыше"); pushJoin(join.getAttribute("data-join")); closeModal(); return; }
       var cancel = t.closest ? t.closest("[data-cancel]") : null;
-      if (cancel){ e.preventDefault(); clearJoined(); showToast("Участие отменено"); closeModal(); render(); return; }
+      if (cancel){ e.preventDefault(); clearJoined(); showToast("Участие отменено"); cancelJoin(cancel.getAttribute("data-cancel")); closeModal(); return; }
     });
     document.addEventListener("keydown", function(e){
       if (e.key === "Escape" && modal.classList.contains("is-open")) closeModal();
@@ -1556,8 +1624,8 @@
     if (cancel){
       e.preventDefault();
       clearJoined();
+      cancelJoin(cancel.getAttribute("data-cancel"));
       showToast("Участие отменено");
-      render();
       return;
     }
     var join = e.target.closest("[data-join]");
@@ -1565,7 +1633,7 @@
       e.preventDefault();
       markJoined(join.getAttribute("data-join"));
       showToast("Вы участвуете в розыгрыше");
-      render();
+      pushJoin(join.getAttribute("data-join"));
       return;
     }
     if (e.target.closest("a")) return;

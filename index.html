@@ -1362,31 +1362,20 @@
   var SB_URL = "https://cxkmsmoxvzyjzhzsehjp.supabase.co";
   var SB_KEY = "sb_publishable_EpzWIYq2t_OExXjbzibLlw_UcZnRDON";
   var sbReady = false;
-  function sbHeaders(){
-    return {
-      "apikey": SB_KEY,
-      "Authorization": "Bearer " + SB_KEY,
-      "Content-Type": "application/json"
-    };
-  }
-  function sbGet(url){
-    return fetch(url, { headers: sbHeaders() }).then(function(r){
-      return r.status >= 200 && r.status < 300 ? r.json() : null;
-    });
-  }
-  function sbPost(url, body){
-    return fetch(url, {
-      method: "POST",
-      headers: sbHeaders(),
-      body: JSON.stringify(body),
-      prefer: "return=minimal"
+  function sbReq(method, path, body){
+    return fetch(SB_URL + path, {
+      method: method,
+      headers: {
+        "apikey": SB_KEY,
+        "Authorization": "Bearer " + SB_KEY,
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+      },
+      body: body ? JSON.stringify(body) : undefined
     }).then(function(r){
-      return r.status >= 200 && r.status < 300;
-    });
-  }
-  function sbDelete(url){
-    return fetch(url, { method: "DELETE", headers: sbHeaders() }).then(function(r){
-      return r.status >= 200 && r.status < 300;
+      if (r.status < 200 || r.status >= 300) throw new Error("HTTP " + r.status);
+      if (r.status === 204) return null;
+      return r.json();
     });
   }
   function browserUuid(){
@@ -1402,17 +1391,16 @@
     }
     return u;
   }
-function syncCounts(){
-    return sbGet(SB_URL + "/rest/v1/participants?select=draw_id")
+  function syncCounts(){
+    return sbReq("GET", "/rest/v1/participants?select=draw_id")
       .then(function(rows){
-        if (!Array.isArray(rows)){ syncOk(false, "not array"); return; }
+        if (!Array.isArray(rows)){ syncOk(false, "bad response"); return; }
         var counts = {};
         rows.forEach(function(r){ counts[r.draw_id] = (counts[r.draw_id] || 0) + 1; });
-        draws.forEach(function(d){
-          d.participants = counts[d.id] || 0;
-        });
+        draws.forEach(function(d){ d.participants = counts[d.id] || 0; });
         sbReady = true;
         syncOk(true, "");
+        render();
       })
       .catch(function(err){
         syncOk(false, err && err.message);
@@ -1426,25 +1414,25 @@ function syncCounts(){
   }
   function pushJoin(id){
     var bid = browserUuid();
-    return sbDelete(SB_URL + "/rest/v1/participants?browser_uuid=eq." + encodeURIComponent(bid))
+    return sbReq("DELETE", "/rest/v1/participants?browser_uuid=eq." + encodeURIComponent(bid))
       .then(function(){
-        return sbPost(SB_URL + "/rest/v1/participants?on_conflict=draw_id,browser_uuid", {
+        return sbReq("POST", "/rest/v1/participants?on_conflict=draw_id%2Cbrowser_uuid", {
           draw_id: Number(id),
           browser_uuid: bid
         });
       })
-      .then(function(ok){
-        if (ok) return syncCounts();
-        throw new Error("insert failed");
+      .then(function(){
+        return syncCounts();
       })
       .catch(function(err){
         try { console.error("Supabase pushJoin error:", err); } catch (e) {}
-        if (window.__sbErr) window.__sbErr(err);
+        syncOk(false, err && err.message);
       });
   }
   function cancelJoin(id){
-    return sbDelete(SB_URL + "/rest/v1/participants?draw_id=eq." + Number(id) + "&browser_uuid=eq." + encodeURIComponent(browserUuid()))
-      .then(function(){ return syncCounts(); }).catch(function(){});
+    return sbReq("DELETE", "/rest/v1/participants?draw_id=eq." + Number(id) + "&browser_uuid=eq." + encodeURIComponent(browserUuid()))
+      .then(function(){ return syncCounts(); })
+      .catch(function(err){ syncOk(false, err && err.message); });
   }
 
   function esc(s){

@@ -557,8 +557,8 @@
   .live i{width:4px;height:4px;border-radius:50%;background:#fff;box-shadow:0 0 9px rgba(255,255,255,.85);animation:pulse 2.4s ease-in-out infinite}
   .live--off{height:22px;padding:0 9px;border:1px solid rgba(239,68,68,.5);background:rgba(239,68,68,.1);color:#FCA5A5;font-size:8px;letter-spacing:.1em;border-radius:6px;box-shadow:0 0 18px rgba(239,68,68,.2),inset 0 0 14px rgba(239,68,68,.08);animation:alertGlow 3.2s ease-in-out infinite}
   .live--off i{background:#EF4444;box-shadow:0 0 10px rgba(239,68,68,.95)}
-  .live--on{height:22px;padding:0 9px;border:1px solid rgba(199,210,222,.6);background:rgba(199,210,222,.14);color:#E6EDF5;font-size:8px;letter-spacing:.1em;border-radius:6px;box-shadow:0 0 16px rgba(199,210,222,.22),inset 0 0 12px rgba(199,210,222,.08)}
-  .live--on i{background:#E8EEF5;box-shadow:0 0 10px rgba(220,232,244,.95)}
+  .live--on{height:22px;padding:0 9px;border:1px solid rgba(74,222,128,.6);background:rgba(34,197,94,.16);color:#BBF7D0;font-size:8px;letter-spacing:.1em;border-radius:6px;box-shadow:0 0 16px rgba(34,197,94,.25),inset 0 0 12px rgba(34,197,94,.1)}
+  .live--on i{background:#4ADE80;box-shadow:0 0 10px rgba(74,222,128,.95)}
   .card__title{margin:0;font-family:var(--tech);font-size:20px;font-weight:600;line-height:1.26;letter-spacing:.004em;color:#E9EFF5}
   .card__channel{display:flex;align-items:center;gap:7px;margin:-7px 0 0;font-family:var(--mono);font-size:11px;letter-spacing:.02em;color:#727C86}
   .card__channel svg{color:#96A2AF;flex:none;opacity:.8}
@@ -1451,16 +1451,19 @@
   }
 
   function timerMarkup(){
-    return '<div class="timer" data-seconds="0">' +
+    return '<div class="timer" data-seconds="1500">' +
       '<div class="timer__cell"><b>00</b><span>дн</span></div>' +
       '<div class="timer__cell"><b>00</b><span>ч</span></div>' +
-      '<div class="timer__cell"><b>00</b><span>мин</span></div>' +
+      '<div class="timer__cell"><b>25</b><span>мин</span></div>' +
       '<div class="timer__cell"><b>00</b><span>сек</span></div>' +
     '</div>';
   }
   function pad2(n){ return n < 10 ? "0" + n : String(n); }
+  function timerExpired(){
+    return (Date.now() - timerStart()) >= 1500 * 1000;
+  }
   function timerStart(){
-    var k = "lincoln-timer-start-v2";
+    var k = "lincoln-timer-start-v3";
     var v = 0;
     try { v = parseInt(localStorage.getItem(k), 10) || 0; } catch (e) {}
     if (!v){ v = Date.now(); try { localStorage.setItem(k, String(v)); } catch (e) {} }
@@ -1483,7 +1486,17 @@
             cells[2].textContent = pad2(Math.floor((v % 3600) / 60));
             cells[3].textContent = pad2(v % 60);
           }
-          if (v > 0){ el.__tick = setTimeout(tick, 1000); }
+          if (v <= 0){
+            el.classList.add("is-ended");
+            var cta = el.closest(".card") ? el.closest(".card").querySelector(".card__cta") : null;
+            if (cta && !cta.classList.contains("is-locked")){
+              cta.classList.add("is-locked");
+              cta.disabled = true;
+              cta.textContent = "Принять участие";
+            }
+            return;
+          }
+          el.__tick = setTimeout(tick, 1000);
         }
         clearTimeout(el.__tick);
         tick();
@@ -1501,7 +1514,7 @@
       '<div class="card__head">' +
         '<span class="tag">' + index + '</span>' +
         (d.active
-        ? '<span class="live live--on"><i></i>В ожидании</span>'
+        ? '<span class="live live--on"><i></i>Активно</span>'
         : '<span class="live live--off"><i></i>На данный момент не проходит</span>') +
       '</div>' +
       '<span class="card__icon" aria-hidden="true">' + (icons[d.icon] || icons.services) + '</span>' +
@@ -1518,9 +1531,11 @@
           '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m2.5 8.5 3.2 3.2 7.8-7.8" stroke="currentColor" stroke-width="1.8"/></svg>' +
         '</button>'
         : d.active
-          ? '<button class="btn btn--primary card__cta" type="button" data-join="' + d.id + '">Участвовать' +
-            '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.6"/></svg>' +
-          '</button>'
+          ? timerExpired()
+            ? '<button class="btn btn--primary card__cta is-locked" type="button" disabled>Принять участие</button>'
+            : '<button class="btn btn--primary card__cta" type="button" data-join="' + d.id + '">Принять участие' +
+              '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.6"/></svg>' +
+            '</button>'
           : '<button class="btn btn--primary card__cta is-locked" type="button" disabled>Участие не проходит</button>') +
       '<a class="card__archive-link" href="#archive-' + d.id + '">Архив победителей' +
         '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.5"/></svg>' +
@@ -1649,6 +1664,12 @@
       var join = t.closest ? t.closest("[data-join]") : null;
       if (join){
         e.preventDefault();
+        if (timerExpired()){
+          render();
+          showToast("Розыгрыш завершён, участие закрыто");
+          closeModal();
+          return;
+        }
         var jid3 = join.getAttribute("data-join");
         var already3 = isJoined(jid3);
         markJoined(jid3);
@@ -1690,6 +1711,11 @@
     var join = e.target.closest("[data-join]");
     if (join){
       e.preventDefault();
+      if (timerExpired()){
+        render();
+        showToast("Розыгрыш завершён, участие закрыто");
+        return;
+      }
       var jid2 = join.getAttribute("data-join");
       var already2 = isJoined(jid2);
       markJoined(jid2);

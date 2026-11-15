@@ -1451,19 +1451,19 @@
   }
 
   function timerMarkup(){
-    return '<div class="timer" data-seconds="2400">' +
+    return '<div class="timer" data-seconds="13200">' +
       '<div class="timer__cell"><b>00</b><span>дн</span></div>' +
-      '<div class="timer__cell"><b>00</b><span>ч</span></div>' +
+      '<div class="timer__cell"><b>03</b><span>ч</span></div>' +
       '<div class="timer__cell"><b>40</b><span>мин</span></div>' +
       '<div class="timer__cell"><b>00</b><span>сек</span></div>' +
     '</div>';
   }
   function pad2(n){ return n < 10 ? "0" + n : String(n); }
   function timerExpired(){
-    return (Date.now() - timerStart()) >= 2400 * 1000;
+    return (Date.now() - timerStart()) >= 13200 * 1000;
   }
   function timerStart(){
-    var k = "lincoln-timer-start-v4";
+    var k = "lincoln-timer-start-v5";
     var v = 0;
     try { v = parseInt(localStorage.getItem(k), 10) || 0; } catch (e) {}
     if (!v){ v = Date.now(); try { localStorage.setItem(k, String(v)); } catch (e) {} }

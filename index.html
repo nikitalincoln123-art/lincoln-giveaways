@@ -1683,6 +1683,11 @@ sbReady = true;
   }
 
   render();
+  syncCounts();
+  setInterval(syncCounts, 10000);
+  document.addEventListener("visibilitychange", function(){
+    if (!document.hidden) syncCounts();
+  });
 
   var heroTitle = document.querySelector("h1");
   if (heroTitle && window.matchMedia("(hover: hover) and (pointer: fine)").matches){

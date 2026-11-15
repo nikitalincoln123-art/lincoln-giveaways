@@ -558,7 +558,7 @@
   .live--off{height:22px;padding:0 9px;border:1px solid rgba(239,68,68,.5);background:rgba(239,68,68,.1);color:#FCA5A5;font-size:8px;letter-spacing:.1em;border-radius:6px;box-shadow:0 0 18px rgba(239,68,68,.2),inset 0 0 14px rgba(239,68,68,.08);animation:alertGlow 3.2s ease-in-out infinite}
   .live--off i{background:#EF4444;box-shadow:0 0 10px rgba(239,68,68,.95)}
   .live--on{height:22px;padding:0 9px;border:1px solid rgba(232,163,61,.6);background:rgba(232,163,61,.14);color:#FFD9A0;font-size:8px;letter-spacing:.1em;border-radius:6px;box-shadow:0 0 16px rgba(232,163,61,.22),inset 0 0 12px rgba(232,163,61,.08)}
-  .live--on i{background:#F0B85C;box-shadow:0 0 10px rgba(232,163,61,.95)}
+  .live--on i{background:#FFD34D;box-shadow:0 0 10px rgba(255,200,80,.95)}
   .card__title{margin:0;font-family:var(--tech);font-size:20px;font-weight:600;line-height:1.26;letter-spacing:.004em;color:#F3EAD9}
   .card__channel{display:flex;align-items:center;gap:7px;margin:-7px 0 0;font-family:var(--mono);font-size:11px;letter-spacing:.02em;color:#727C86}
   .card__channel svg{color:#A79C8B;flex:none;opacity:.8}
@@ -1460,7 +1460,7 @@
   }
   function pad2(n){ return n < 10 ? "0" + n : String(n); }
   function timerStart(){
-    var k = "lincoln-timer-start";
+    var k = "lincoln-timer-start-v2";
     var v = 0;
     try { v = parseInt(localStorage.getItem(k), 10) || 0; } catch (e) {}
     if (!v){ v = Date.now(); try { localStorage.setItem(k, String(v)); } catch (e) {} }
@@ -1500,7 +1500,7 @@
       '<div class="card__head">' +
         '<span class="tag">' + index + '</span>' +
         (d.active
-        ? '<span class="live live--on"><i></i>По некоторым ошибкам, было добавлено 15 часов</span>'
+        ? '<span class="live live--on"><i></i>В ожидании</span>'
         : '<span class="live live--off"><i></i>На данный момент не проходит</span>') +
       '</div>' +
       '<span class="card__icon" aria-hidden="true">' + (icons[d.icon] || icons.services) + '</span>' +

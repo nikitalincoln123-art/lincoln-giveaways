@@ -1347,7 +1347,7 @@
     try { localStorage.removeItem("lincoln-joined"); } catch (e) {}
   }
   function cardCounter(d){
-    return d.participants + (isJoined(d.id) ? 1 : 0);
+    return d.participants;
   }
 
   var SB_URL = "https://cxkmsmoxvzyjzhzsehjp.supabase.co";
@@ -1361,17 +1361,24 @@
     };
   }
   function sbGet(url){
-    return fetch(url, { headers: sbHeaders() }).then(function(r){ return r.json(); });
+    return fetch(url, { headers: sbHeaders() }).then(function(r){
+      return r.status >= 200 && r.status < 300 ? r.json() : null;
+    });
   }
   function sbPost(url, body){
     return fetch(url, {
       method: "POST",
       headers: sbHeaders(),
-      body: JSON.stringify(body)
-    }).then(function(r){ return r.json(); });
+      body: JSON.stringify(body),
+      prefer: "return=minimal"
+    }).then(function(r){
+      return r.status >= 200 && r.status < 300;
+    });
   }
   function sbDelete(url){
-    return fetch(url, { method: "DELETE", headers: sbHeaders() }).then(function(r){ return r.json(); });
+    return fetch(url, { method: "DELETE", headers: sbHeaders() }).then(function(r){
+      return r.status >= 200 && r.status < 300;
+    });
   }
   function browserUuid(){
     var k = "lincoln-uuid";

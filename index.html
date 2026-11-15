@@ -826,6 +826,14 @@
     animation:splashShimmer 1s ease both;
     text-shadow:0 0 40px rgba(255,255,255,.18);
   }
+  .sync-state{
+    position:fixed;top:80px;right:16px;z-index:300;
+    padding:4px 10px;border-radius:999px;
+    font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+    background:rgba(0,0,0,.7);color:#9AA4AF;pointer-events:none;
+  }
+  .sync-state.ok{color:#7EE0AE}
+  .sync-state.err{color:#FF9C9C}
   @keyframes splashShimmer{
     0%{opacity:0;transform:translateY(10px);filter:blur(6px)}
     35%{opacity:1;filter:blur(0)}
@@ -999,6 +1007,7 @@
 <div class="splash" id="splash" aria-hidden="true">
   <span class="splash__word">LINCOLN</span>
 </div>
+<div class="sync-state" id="syncState" aria-hidden="true">синк…</div>
 <div class="page-glow" aria-hidden="true"></div>
 <div class="bokeh" aria-hidden="true"><i></i><i></i><i></i></div>
 <canvas class="rain" id="rain" aria-hidden="true"></canvas>
@@ -1393,18 +1402,27 @@
     }
     return u;
   }
-  function syncCounts(){
+function syncCounts(){
     return sbGet(SB_URL + "/rest/v1/participants?select=draw_id")
       .then(function(rows){
-        if (!Array.isArray(rows)) return;
+        if (!Array.isArray(rows)){ syncOk(false, "not array"); return; }
         var counts = {};
         rows.forEach(function(r){ counts[r.draw_id] = (counts[r.draw_id] || 0) + 1; });
         draws.forEach(function(d){
           d.participants = counts[d.id] || 0;
         });
-sbReady = true;
+        sbReady = true;
+        syncOk(true, "");
       })
-      .catch(function(){});
+      .catch(function(err){
+        syncOk(false, err && err.message);
+      });
+  }
+  function syncOk(ok, msg){
+    var el = document.getElementById("syncState");
+    if (!el) return;
+    el.textContent = ok ? "синк OK" : ("синк ошибка" + (msg ? ": " + msg : ""));
+    el.className = "sync-state " + (ok ? "ok" : "err");
   }
   function pushJoin(id){
     var bid = browserUuid();

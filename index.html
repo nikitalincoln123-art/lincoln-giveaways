@@ -1391,6 +1391,27 @@
     }
     return u;
   }
+  function refreshCards(){
+    var cards = grid.querySelectorAll(".card");
+    for (var i = 0; i < cards.length; i++){
+      var card = cards[i];
+      var id = card.getAttribute("data-draw");
+      var d = findDraw(id);
+      if (!d) continue;
+      var fact = card.querySelector(".fact strong");
+      if (fact && card.querySelector(".fact span").textContent.indexOf("Участников") !== -1){
+        if (fact.textContent !== String(cardCounter(d))) fact.textContent = cardCounter(d);
+      }
+      var cta = card.querySelector("[data-join], [data-cancel]");
+      if (cta && isJoined(d.id) && !cta.hasAttribute("data-cancel")){
+        var wrap = document.createElement("span");
+        wrap.innerHTML = '<button class="btn btn--primary card__cta is-joined" type="button" data-cancel="' + d.id + '">Вы участвуете<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m2.5 8.5 3.2 3.2 7.8-7.8" stroke="currentColor" stroke-width="1.8"/></svg></button>';
+        cta.parentNode.replaceChild(wrap.firstChild, cta);
+      } else if (cta && cta.hasAttribute("data-cancel") && !isJoined(d.id)){
+        cta.remove();
+      }
+    }
+  }
   function syncCounts(){
     var bid = browserUuid();
     return Promise.all([
@@ -1413,7 +1434,7 @@
       }
       sbReady = true;
       syncOk(true, "");
-      render();
+      refreshCards();
     })
     .catch(function(err){
       syncOk(false, err && err.message);

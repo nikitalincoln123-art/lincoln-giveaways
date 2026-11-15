@@ -1392,19 +1392,32 @@
     return u;
   }
   function syncCounts(){
-    return sbReq("GET", "/rest/v1/participants?select=draw_id")
-      .then(function(rows){
-        if (!Array.isArray(rows)){ syncOk(false, "bad response"); return; }
-        var counts = {};
-        rows.forEach(function(r){ counts[r.draw_id] = (counts[r.draw_id] || 0) + 1; });
-        draws.forEach(function(d){ d.participants = counts[d.id] || 0; });
-        sbReady = true;
-        syncOk(true, "");
-        render();
-      })
-      .catch(function(err){
-        syncOk(false, err && err.message);
-      });
+    var bid = browserUuid();
+    return Promise.all([
+      sbReq("GET", "/rest/v1/participants?select=draw_id"),
+      sbReq("GET", "/rest/v1/participants?select=draw_id&browser_uuid=eq." + encodeURIComponent(bid))
+    ]).then(function(res){
+      var rows = res[0];
+      var mine = res[1];
+      if (!Array.isArray(rows)){ syncOk(false, "bad response"); return; }
+      var counts = {};
+      rows.forEach(function(r){ counts[r.draw_id] = (counts[r.draw_id] || 0) + 1; });
+      draws.forEach(function(d){ d.participants = counts[d.id] || 0; });
+      var joinedId = null;
+      if (Array.isArray(mine) && mine.length){ joinedId = mine[0].draw_id; }
+      if (joinedId){
+        var j = { id: String(joinedId), t: Date.now() };
+        try { localStorage.setItem("lincoln-joined", JSON.stringify(j)); } catch (e) {}
+      } else {
+        try { localStorage.removeItem("lincoln-joined"); } catch (e) {}
+      }
+      sbReady = true;
+      syncOk(true, "");
+      render();
+    })
+    .catch(function(err){
+      syncOk(false, err && err.message);
+    });
   }
   function syncOk(ok, msg){
     var el = document.getElementById("syncState");

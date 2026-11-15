@@ -1451,19 +1451,19 @@
   }
 
   function timerMarkup(){
-    return '<div class="timer" data-seconds="7800">' +
+    return '<div class="timer" data-seconds="60">' +
       '<div class="timer__cell"><b>00</b><span>дн</span></div>' +
-      '<div class="timer__cell"><b>02</b><span>ч</span></div>' +
-      '<div class="timer__cell"><b>10</b><span>мин</span></div>' +
+      '<div class="timer__cell"><b>00</b><span>ч</span></div>' +
+      '<div class="timer__cell"><b>01</b><span>мин</span></div>' +
       '<div class="timer__cell"><b>00</b><span>сек</span></div>' +
     '</div>';
   }
   function pad2(n){ return n < 10 ? "0" + n : String(n); }
   function timerExpired(){
-    return (Date.now() - timerStart()) >= 7800 * 1000;
+    return (Date.now() - timerStart()) >= 60 * 1000;
   }
   function timerStart(){
-    var k = "lincoln-timer-start-v6";
+    var k = "lincoln-timer-start-v7";
     var v = 0;
     try { v = parseInt(localStorage.getItem(k), 10) || 0; } catch (e) {}
     if (!v){ v = Date.now(); try { localStorage.setItem(k, String(v)); } catch (e) {} }
@@ -1488,11 +1488,19 @@
           }
           if (v <= 0){
             el.classList.add("is-ended");
-            var cta = el.closest(".card") ? el.closest(".card").querySelector(".card__cta") : null;
-            if (cta && !cta.classList.contains("is-locked")){
-              cta.classList.add("is-locked");
-              cta.disabled = true;
-              cta.textContent = "Принять участие";
+            var card = el.closest(".card");
+            if (card){
+              var cta = card.querySelector(".card__cta");
+              if (cta && !cta.classList.contains("is-locked")){
+                cta.classList.add("is-locked");
+                cta.disabled = true;
+                cta.textContent = "Принять участие";
+              }
+              var live = card.querySelector(".live");
+              if (live){
+                live.className = "live live--off";
+                live.innerHTML = "<i></i>Окончено. Ожидайте своих призов...";
+              }
             }
             return;
           }
@@ -1513,7 +1521,9 @@
       (featured ? '<span class="ribbon">Главный розыгрыш</span>' : '') +
       '<div class="card__head">' +
         '<span class="tag">' + index + '</span>' +
-        (d.active
+        (d.active && timerExpired()
+        ? '<span class="live live--off"><i></i>Окончено. Ожидайте своих призов...</span>'
+        : d.active
         ? '<span class="live live--on"><i></i>Активно</span>'
         : '<span class="live live--off"><i></i>На данный момент не проходит</span>') +
       '</div>' +

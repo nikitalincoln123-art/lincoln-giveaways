@@ -1415,8 +1415,14 @@ sbReady = true;
           browser_uuid: bid
         });
       })
-      .then(function(){ return syncCounts(); })
-      .catch(function(){});
+      .then(function(ok){
+        if (ok) return syncCounts();
+        throw new Error("insert failed");
+      })
+      .catch(function(err){
+        try { console.error("Supabase pushJoin error:", err); } catch (e) {}
+        if (window.__sbErr) window.__sbErr(err);
+      });
   }
   function cancelJoin(id){
     return sbDelete(SB_URL + "/rest/v1/participants?draw_id=eq." + Number(id) + "&browser_uuid=eq." + encodeURIComponent(browserUuid()))
@@ -1627,11 +1633,14 @@ sbReady = true;
       var join = t.closest ? t.closest("[data-join]") : null;
       if (join){
         e.preventDefault();
-        var jid = join.getAttribute("data-join");
-        markJoined(jid);
+        var jid3 = join.getAttribute("data-join");
+        var already3 = isJoined(jid3);
+        markJoined(jid3);
+        var jd3 = findDraw(jid3);
+        if (jd3 && !already3) jd3.participants = (jd3.participants || 0) + 1;
         render();
         showToast("Вы участвуете в розыгрыше");
-        pushJoin(jid);
+        pushJoin(jid3);
         closeModal();
         return;
       }
@@ -1665,11 +1674,14 @@ sbReady = true;
     var join = e.target.closest("[data-join]");
     if (join){
       e.preventDefault();
-      var jid = join.getAttribute("data-join");
-      markJoined(jid);
+      var jid2 = join.getAttribute("data-join");
+      var already2 = isJoined(jid2);
+      markJoined(jid2);
+      var jd2 = findDraw(jid2);
+      if (jd2 && !already2) jd2.participants = (jd2.participants || 0) + 1;
       render();
       showToast("Вы участвуете в розыгрыше");
-      pushJoin(jid);
+      pushJoin(jid2);
       return;
     }
     if (e.target.closest("a")) return;

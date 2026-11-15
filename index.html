@@ -826,14 +826,6 @@
     animation:splashShimmer 1s ease both;
     text-shadow:0 0 40px rgba(255,255,255,.18);
   }
-  .sync-state{
-    position:fixed;top:80px;right:16px;z-index:300;
-    padding:4px 10px;border-radius:999px;
-    font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
-    background:rgba(0,0,0,.7);color:#9AA4AF;pointer-events:none;
-  }
-  .sync-state.ok{color:#7EE0AE}
-  .sync-state.err{color:#FF9C9C}
   @keyframes splashShimmer{
     0%{opacity:0;transform:translateY(10px);filter:blur(6px)}
     35%{opacity:1;filter:blur(0)}
@@ -1007,7 +999,6 @@
 <div class="splash" id="splash" aria-hidden="true">
   <span class="splash__word">LINCOLN</span>
 </div>
-<div class="sync-state" id="syncState" aria-hidden="true">синк…</div>
 <div class="page-glow" aria-hidden="true"></div>
 <div class="bokeh" aria-hidden="true"><i></i><i></i><i></i></div>
 <canvas class="rain" id="rain" aria-hidden="true"></canvas>
@@ -1178,7 +1169,7 @@
         <div class="step">
           <div class="step__num">03</div>
           <h3>Приз — первым 10</h3>
-          <p>Первые 10 человек, кто пришлёт доказательства, получат приз. Условие про 10 человек действует только для розыгрышей мишек — у остальных розыгрышей свои условия, они будут обновляться.</p>
+          <p>Первые 6 человек, кто пришлёт доказательства, получат приз. Условие про 6 человек действует только для розыгрышей мишек — у остальных розыгрышей свои условия, они будут обновляться.</p>
         </div>
       </div>
       <a class="contact-bar" href="https://t.me/LincolnWasted" target="_blank" rel="noopener noreferrer">
@@ -1230,7 +1221,7 @@
         </details>
         <details>
           <summary>Кто выбирает победителя?</summary>
-          <p>Победителей определяет организатор по условиям конкретного розыгрыша. В розыгрышах мишек приз получают первые 10 человек с доказательствами участия; у остальных розыгрышей свои правила.</p>
+          <p>Победителей определяет организатор по условиям конкретного розыгрыша. В розыгрышах мишек приз получают первые 6 человек с доказательствами участия; у остальных розыгрышей свои правила.</p>
         </details>
         <details>
           <summary>Можно участвовать в нескольких розыгрышах?</summary>
@@ -1440,12 +1431,7 @@
       syncOk(false, err && err.message);
     });
   }
-  function syncOk(ok, msg){
-    var el = document.getElementById("syncState");
-    if (!el) return;
-    el.textContent = ok ? "синк OK" : ("синк ошибка" + (msg ? ": " + msg : ""));
-    el.className = "sync-state " + (ok ? "ok" : "err");
-  }
+  function syncOk(ok, msg){}
   function pushJoin(id){
     var bid = browserUuid();
     return sbReq("DELETE", "/rest/v1/participants?browser_uuid=eq." + encodeURIComponent(bid))
@@ -1526,7 +1512,7 @@
         '<span class="tag">' + index + '</span>' +
         (d.active
         ? '<span class="live live--on"><i></i>По некоторым ошибкам, было добавлено 15 часов</span>'
-        : '<span class="live"><i></i>Участие не проходит</span>') +
+        : '<span class="live live--off"><i></i>На данный момент не проходит</span>') +
       '</div>' +
       '<span class="card__icon" aria-hidden="true">' + (icons[d.icon] || icons.services) + '</span>' +
       '<span class="card__num" aria-hidden="true">' + index + '</span>' +

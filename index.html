@@ -1291,31 +1291,31 @@
   "use strict";
 
   var draws = [
-    { id: 1, title: "Раздача 6-ти мишек", channel: "AdapterLincoln", icon: "bears", featured: true, active: true, winners: [], participants: 0, prize: "6 мишек",
+    { id: 1, title: "Раздача 6-ти мишек", channel: "AdapterLincoln", icon: "bears", featured: true, active: false, winners: [], participants: 0, prize: "6 мишек",
       rules: [
         "Нажмите «Участвовать», подпишитесь на канал и поставьте реакцию на последний пост.",
         "После завершения таймера пришлите скриншот подписки и реакции в личные сообщения @LincolnWasted.",
         "Первые 6 человек с доказательствами участия получат мишку."
       ] },
-    { id: 2, title: "100 звезд на аккаунт", channel: "AdapterLincoln", icon: "stars", winners: [], participants: 0,
+    { id: 2, title: "100 звезд на аккаунт", channel: "AdapterLincoln", icon: "stars", active: false, winners: [], participants: 0,
       rules: [
         "Нажмите «Участвовать», подпишитесь на канал и поставьте реакцию на последний пост.",
         "После завершения таймера пришлите доказательства участия в личные сообщения @LincolnWasted.",
         "Приз — 100 звёзд на аккаунт. Победитель один, имя объявим в канале."
       ] },
-    { id: 3, title: "Виртуальный номер", channel: "AdapterLincoln", icon: "sim", winners: [], participants: 0,
+    { id: 3, title: "Виртуальный номер", channel: "AdapterLincoln", icon: "sim", active: false, winners: [], participants: 0,
       rules: [
         "Нажмите «Участвовать», подпишитесь на канал и поставьте реакцию на последний пост.",
         "После завершения таймера пришлите доказательства участия в личные сообщения @LincolnWasted.",
         "Приз — виртуальный номер. Победитель один, итоги в канале."
       ] },
-    { id: 4, title: "Любой NFT-Подарок до 300 звезд", channel: "AdapterLincoln", icon: "nft", winners: [], participants: 0,
+    { id: 4, title: "Любой NFT-Подарок до 300 звезд", channel: "AdapterLincoln", icon: "nft", active: false, winners: [], participants: 0,
       rules: [
         "Нажмите «Участвовать», подпишитесь на канал и поставьте реакцию на последний пост.",
         "После завершения таймера пришлите доказательства участия в личные сообщения @LincolnWasted.",
         "Приз — любой NFT-подарок до 300 звёзд на ваш выбор. Условия могут обновляться."
       ] },
-    { id: 5, title: "Любые услуги бесплатно", channel: "AdapterLincoln", icon: "services", winners: [], participants: 0,
+    { id: 5, title: "Любые услуги бесплатно", channel: "AdapterLincoln", icon: "services", active: false, winners: [], participants: 0,
       rules: [
         "Нажмите «Участвовать», подпишитесь на канал и поставьте реакцию на последний пост.",
         "После завершения таймера пришлите доказательства участия в личные сообщения @LincolnWasted.",
@@ -1525,6 +1525,8 @@
         ? '<span class="live live--off"><i></i>Окончено. Ожидайте своих призов...</span>'
         : d.active
         ? '<span class="live live--on"><i></i>Активно</span>'
+        : (featured && d.active === false)
+        ? '<span class="live live--off"><i></i>Завершен</span>'
         : '<span class="live live--off"><i></i>На данный момент не проходит</span>') +
       '</div>' +
       '<span class="card__icon" aria-hidden="true">' + (icons[d.icon] || icons.services) + '</span>' +
@@ -1653,9 +1655,13 @@
         ? '<button class="btn btn--primary modal__cta is-joined" type="button" data-cancel="' + d.id + '">Вы участвуете' +
           '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m2.5 8.5 3.2 3.2 7.8-7.8" stroke="currentColor" stroke-width="1.8"/></svg>' +
         '</button>'
-        : '<button class="btn btn--primary modal__cta" type="button" data-join="' + d.id + '">Участвовать' +
-          '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.6"/></svg>' +
-        '</button>') +
+        : d.active
+          ? timerExpired()
+            ? '<button class="btn btn--primary modal__cta is-locked" type="button" disabled>Участвовать</button>'
+            : '<button class="btn btn--primary modal__cta" type="button" data-join="' + d.id + '">Участвовать' +
+              '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.6"/></svg>' +
+            '</button>'
+          : '<button class="btn btn--primary modal__cta is-locked" type="button" disabled>Участие не проходит</button>') +
       '<p class="modal__hint">Доказательства участия отправляйте @LincolnWasted.</p>';
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
